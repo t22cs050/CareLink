@@ -1,4 +1,5 @@
 from django.db import models
+from .randomGenerate import generate_unique_integer
 
 
 class Elder(models.Model):
