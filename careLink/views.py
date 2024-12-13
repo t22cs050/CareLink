@@ -11,7 +11,7 @@ def login(request):
     return render(request, 'careLink/login.html')
 
 
-class signInElder(CreateView):
+class signUpElder(CreateView):
     model = Elder
     fields = ()
     template_name = 'careLink/elder_add.html'
@@ -40,7 +40,7 @@ class signInElder(CreateView):
         return super().form_valid(form)
 
 
-class signInFamily(CreateView):
+class signUpFamily(CreateView):
     model = Family
     fields = ('name', 'password')
     template_name = 'careLink/family_add.html'
