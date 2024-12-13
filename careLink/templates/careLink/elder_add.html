@@ -4,9 +4,13 @@
     <title>Elder追加</title>
 </head>
 <body>
+    <h1>Elderの登録</h1>
+    
+    <!-- 生成されたelder_codeを表示 -->
+    <p>あなたの Elder Code は <strong>{{ elder_code }}</strong> です。登録しますか？</p>
+
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
         <button type="submit">登録</button>
     </form>
 </body>

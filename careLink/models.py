@@ -14,11 +14,13 @@ class Elder(models.Model):
             self.elder_id = generate_unique_integer(
                 Elder, 'elder_id', 10000, 999999999
             )
+            print("is not elder_id")
         # elder_codeを自動生成（4桁の整数）
         if not self.elder_code:
             self.elder_code = generate_unique_integer(
                 Elder, 'elder_code', 1000, 9999
             )
+            print("is not elder_code")
         super().save(*args, **kwargs)  # 元のsaveメソッドを呼び出す
 
 
