@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import signInElder,signInFamily,result_view
+from .views import signInElder,signInFamily
 from . import views
 
 
@@ -10,7 +10,15 @@ urlpatterns = [
     path('signin_family', signInFamily.as_view(), name='signin_family'),
     
 
-    #管理者側の行動状況の確認画面
-    path('family/result',result_view,name='result')
+
+    path('family/result-calender',views.MonthCalendar.as_view(),name='result-calender'),
+
+    path('family/result-calender/result',views.result,name="result"),
+
+    path('family/<int:year>/<int:month>/', views.MonthCalendar.as_view(), name='month'),
+
+
+
+    
 
 ]
