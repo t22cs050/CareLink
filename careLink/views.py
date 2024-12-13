@@ -22,3 +22,9 @@ class signInFamily(CreateView):
     fields = ('name', 'password')
     template_name = 'careLink/family_add.html'
     success_url = '/careLink/login'
+
+def result_view(request):
+    return render(request,'careLink/result.html')
+
+
+
