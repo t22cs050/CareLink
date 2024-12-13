@@ -2,12 +2,15 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.contrib import messages
+from django.db import transaction
 
 from .models import Elder, Family, Schedule
 from .forms import ScheduleForm # 行動登録に用いるフォーム
 from . import mixins            # カレンダー関連のクラスを定義したやつ
 
 from datetime import timedelta, date
+from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 
 def login(request):
     return render(request, 'careLink/login.html')
@@ -40,34 +43,57 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 
 # --- 行動登録画面
 def add_schedule(request, date):
+    existing_schedules = Schedule.objects.filter(date=date) # その日付のスケジュールを取得
     if request.method == 'POST':
         form = ScheduleForm(request.POST)
         if form.is_valid():
-            schedule = form.save(commit=False)  # 一時的に保存
-            recurrence = schedule.recurrence
-            start_date = schedule.start_date
-
-            # 繰り返しデータを生成
-            if recurrence != 'none':
-                for i in range(0, 365):  # 1年分の繰り返し
-                    new_schedule = Schedule(
-                        title=schedule.title,
-                        start_date=start_date,
-                        recurrence=schedule.recurrence
-                    )
-                    if recurrence == 'daily':
-                        new_schedule.start_date = start_date + timedelta(days=i)
-                    elif recurrence == 'weekly':
-                        new_schedule.start_date = start_date + timedelta(weeks=i)
-                    elif recurrence == 'monthly':
-                        new_schedule.start_date = start_date.replace(day=1) + timedelta(days=30 * i)
-                        new_schedule.start_date = new_schedule.start_date.replace(day=min(start_date.day, (new_schedule.start_date + timedelta(days=31)).day))
-
-                    new_schedule.save()
-            else:
-                schedule.save()  # 繰り返さない場合はそのまま保存
-
-            return redirect('schedule_list')
+            schedule = form.save(commit=False)
+            # バリデーションエラーを確認
+            print("Form is valid")
+            print(form.cleaned_data)
+            
+            try:
+                with transaction.atomic():
+                    if schedule.recurrence != 'none':
+                        # より効率的な繰り返しスケジュール生成
+                        schedules_to_create = []
+                        for i in range(12):  # 1年分ではなく、12回の繰り返しに制限
+                            if schedule.recurrence == 'daily':
+                                new_date = schedule.date + timedelta(days=i)
+                            elif schedule.recurrence == 'weekly':
+                                new_date = schedule.date + timedelta(weeks=i)
+                            elif schedule.recurrence == 'monthly':
+                                new_date = schedule.date + relativedelta(months=i)
+                            
+                            schedules_to_create.append(Schedule(
+                                title=schedule.title,
+                                date=new_date,
+                                recurrence=schedule.recurrence,
+                                description=schedule.description,
+                                completion=False,
+                                silver_code=schedule.silver_code
+                            ))
+                        
+                        # バルクインサート
+                        Schedule.objects.bulk_create(schedules_to_create)
+                    else:
+                        schedule.save()
+                
+                messages.success(request, 'スケジュールを正常に登録しました。')
+                render(request, 'careLink/add_schedule.html', {
+                    'form': form, 
+                    'date': date,
+                    'existing_schedules': existing_schedules
+                    })
+            
+            except Exception as e:
+                messages.error(request, f'エラーが発生しました: {str(e)}')
+    
     else:
-        form = ScheduleForm(initial={'start_date': date})  # 日付を初期値として設定
-    return render(request, 'careLink/add_schedule.html', {'form': form, 'date': date})
+        form = ScheduleForm(initial={'date': date})
+    
+    return render(request, 'careLink/add_schedule.html', {
+        'form': form, 
+        'date': date,
+        'existing_schedules': existing_schedules
+    })
