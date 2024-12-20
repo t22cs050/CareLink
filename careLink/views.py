@@ -90,6 +90,7 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
         return context
 
 
+
 # --- 月間カレンダーを表示するビュー ---
 class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
     
@@ -100,6 +101,7 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
         calendar_context = self.get_month_calendar()
         context.update(calendar_context)
         return context
+
 
 # --- 行動登録画面
 def add_schedule(request, date):
