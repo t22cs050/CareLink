@@ -1,17 +1,19 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db import transaction
+from django.template.loader import render_to_string
 
 from .models import Elder, Schedule
-from .forms import ScheduleForm             # 行動登録に用いるフォーム
-from .forms  import UserRegistrationForm    # ユーザ登録に用いるフォーム 
+from .forms import ScheduleForm            # 行動登録に用いるフォーム
+from .forms import UserRegistrationForm    # ユーザ登録に用いるフォーム 
+from .forms import DateInputForm
 from . import mixins # カレンダー関連のクラスを定義したやつ
 
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
 
@@ -86,30 +88,27 @@ class signUpFamily(CreateView):
 
 
 
-# 行動状況の確認
-def result(request):
-    # クエリパラメータから日付情報を取得
-    date_str = request.GET.get('date')
-    selected_date = None
+# --- 行動状況の確認
+def result_view(request):
+    form = DateInputForm()
+    today = datetime.today()  # 今日の日付を取得
+    schedules = Schedule.objects.filter(date=today)  # 今日のスケジュールを取得
+    return render(request, 'careLink/result.html', {'form': form, 'schedules': schedules})
 
-    if date_str:
-        try:
-            # 日付情報をパース
-            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = None  # パースエラー時はNoneに設定
+def get_schedules(request):
+    if request.method == 'GET':
+        selected_date = request.GET.get('date')
+        schedules = Schedule.objects.filter(date=selected_date)
+        schedule_data = [
+            {
+                'date': schedule.date,
+                'completion': '完了' if schedule.completion else '未完了'
+            }
+            for schedule in schedules
+        ]
+        return JsonResponse(schedule_data, safe=False)
 
-    # 現在の月を取得
-    month_current = datetime.now()
-
-    # テンプレートにデータを渡す
-    return render(request, 'careLink/result.html', {
-        'selected_date': selected_date,
-        'month_current': month_current,
-    })
-
-
-# --- 月間カレンダーを表示するビュー ---
+# --- 月間カレンダーを表示するビュー
 class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
     
     template_name = 'careLink/result-calender.html'
@@ -119,7 +118,6 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
         calendar_context = self.get_month_calendar()
         context.update(calendar_context)
         return context
-
 
 
 # --- 月間カレンダーを表示するビュー ---
