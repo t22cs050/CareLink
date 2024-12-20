@@ -1,5 +1,5 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
@@ -14,6 +14,8 @@ from . import mixins # カレンダー関連のクラスを定義したやつ
 from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
+
+import requests
 
 
 # --- ログインview
@@ -33,7 +35,8 @@ def user_login(request):
     if isSignUpedElder(request):
         print("高齢者ログインされている")
         return render(request, 'careLink/family_add.html')
-    print("高齢者ログインされていない")
+    else:
+        print("高齢者ログインされていない")
     return render(request, 'careLink/login.html')
 
 
@@ -43,8 +46,11 @@ def get_elder_from_cookie(request):
     :param request: HttpRequestオブジェクト
     :return: elder_idとelder_codeのタプル（存在しない場合はNone, None）
     """
+    if 'elder_id' in request.COOKIES:
+        print("クッキー、あります")
     elder_id = request.COOKIES.get('elder_id')
     elder_code = request.COOKIES.get('elder_code')
+    print(f"elder_id: {elder_id}, elder_code: {elder_code}")  # デバッグ用出力
     return elder_id, elder_code
 
 
@@ -57,7 +63,7 @@ class signUpElder(CreateView):
     model = Elder
     fields = ()
     template_name = 'careLink/elder_add.html'
-    success_url = '/careLink/login'
+    success_url = '/careLink/elder/home'
 
     # アクセスするときに呼び出される
     def get_context_data(self, **kwargs):
@@ -72,8 +78,8 @@ class signUpElder(CreateView):
         # セッションからelder_idとelder_codeを取得してコンテキストに追加
         context['elder_id'] = self.request.session['elder_id']
         context['elder_code'] = self.request.session['elder_code']
-        # print("get_context_data")
-
+        # print("get_context_data")        
+        
         return context
     
     # データベースに保存
@@ -84,12 +90,15 @@ class signUpElder(CreateView):
         code = self.request.session.pop('elder_code')
         form.instance.elder_code = code
 
-        # レスポンスを取得し、クッキーにelder_idとelder_codeを保存
-        response = super().form_valid(form)
-        response.set_cookie('elder_id', id, max_age=60*60*24*120)  # 120日間有効
-        response.set_cookie('elder_code', code, max_age=60*60*24*120)
+        # データベースに保存
+        form.instance.save()
 
-        return super().form_valid(form)
+        # Cookie に elder_id と elder_code を保存
+        response = super().form_valid(form)
+        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
+        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+
+        return response
 
 
 # --- 家族側sginup画面
@@ -222,8 +231,7 @@ def add_schedule(request, date):
     })
 
 
-class elderHome(ListView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
+def elderHome(request):
+    get_elder_from_cookie(request)
+    return render(request, 'careLink/home.html')
     
