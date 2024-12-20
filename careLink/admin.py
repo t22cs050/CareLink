@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Elder, Family
+from .models import Elder
 from .models import Schedule
-
+from .models import FamilyUser
 
 admin.site.register(Elder)
-admin.site.register(Family)
+admin.site.register(FamilyUser)
 
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):

@@ -27,6 +27,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+"""
+AUTH_USER_MODELではログイン認証に用いるモデル名を指定する。
+
+新たにmigrationsを作成するときにエラーが発生した場合、
+initファイルを除いたmigrationsを削除し、再度実行されたい。
+"""
+AUTH_USER_MODEL = 'careLink.FamilyUser' 
+
 
 # Application definition
 
