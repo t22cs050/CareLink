@@ -1,0 +1,39 @@
+{% extends 'careLink/base.html' %}
+
+{% block content %}
+    <h1>スケジュール登録</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.title.label_tag }} {{ form.title }}<br>
+        {{ form.date.label_tag }} 
+        <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" required><br>
+        {{ form.recurrence.label_tag }} {{ form.recurrence }}<br>
+        {{ form.description.label_tag }} {{ form.description }}<br>
+        {{ form.silver_code.label_tag }} {{ form.silver_code }}<br>
+        <button type="submit">登録</button>
+    </form>
+
+
+    {% if existing_schedules %}
+    <h2>登録済みスケジュール</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>タイトル</th>
+                <th>繰り返し</th>
+                <th>説明</th>
+                <th>状態</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in existing_schedules %}
+                <tr>
+                    <td>{{ schedule.title }}</td>
+                    <td>{{ schedule.get_recurrence_display }}</td>
+                    <td>{{ schedule.description }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endblock %}
