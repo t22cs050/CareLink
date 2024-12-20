@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 from .randomGenerate import generate_unique_integer
 
 
@@ -23,15 +24,8 @@ class Elder(models.Model):
             print("is not elder_code")
         super().save(*args, **kwargs)  # 元のsaveメソッドを呼び出す
 
-
-class Family(models.Model):
-    # 5桁以上10桁未満の整数
-    family_id = models.IntegerField(unique=True)
-    # 4桁の整数
-    elder_code = models.IntegerField(unique=True)
-    name = models.CharField(max_length=30)
-    password = models.CharField(max_length=20)
-
+class FamilyUser(AbstractUser):
+    elder_code = models.IntegerField(unique=True) # 4桁の整数
 
 # --- 行動管理DB定義
 class Schedule(models.Model):

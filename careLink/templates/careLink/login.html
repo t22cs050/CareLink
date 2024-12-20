@@ -71,16 +71,18 @@
 </head>
 <body>
     <h1>Login Page</h1>
-    <form method="post" action="/login/">
+    <form method="post">
         {% csrf_token %}
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" class="styled-input" required>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" class="styled-input" required>
-        <button type="submit" class="styled-button">Login</button>
+        <button type="submit" class="styled-button">ログイン</button>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
     </form>
     <a href="signup_elder" class="icon-link"><i class="fas fa-user"></i>高齢者側サインアップ</a>
     <a href="signup_family" class="icon-link"><i class="fas fa-users"></i>家族側サインアップ</a>
 </body>
 </html>
-

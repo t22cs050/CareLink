@@ -1,21 +1,35 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from .models import Elder, Family
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.db import transaction
 
-from .models import Elder, Family, Schedule
-from .forms import ScheduleForm # 行動登録に用いるフォーム
-from . import mixins            # カレンダー関連のクラスを定義したやつ
+from .models import Elder, Schedule
+from .forms import ScheduleForm             # 行動登録に用いるフォーム
+from .forms  import UserRegistrationForm    # ユーザ登録に用いるフォーム 
+from . import mixins # カレンダー関連のクラスを定義したやつ
 
 from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
 
 
-def login(request):
+# --- ログインview
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('family/schedule')  # ログイン後のリダイレクト先
+        else:
+            # エラーメッセージの表示
+            return render(request, 'careLink/login.html', {'error': 'Invalid credentials or elder code.'})
+    
     return render(request, 'careLink/login.html')
 
 
@@ -48,11 +62,28 @@ class signUpElder(CreateView):
         return super().form_valid(form)
 
 
+# --- 家族側sginup画面
 class signUpFamily(CreateView):
-    model = Family
     fields = ('name', 'password')
     template_name = 'careLink/family_add.html'
     success_url = '/careLink/login'
+    def register(request):
+        if request.method == 'POST':
+            form = UserRegistrationForm(request.POST)
+
+            if form.is_valid():
+                # DBにelder_codeが存在する場合登録が完了する
+                if form.is_valid() and Elder.objects.filter(elder_code=form.cleaned_data.get('elder_code')).exists():
+                    user = form.save()
+                    return redirect('login')
+                
+                # 存在しなければエラーを返す
+                else:
+                    form.add_error('elder_code', 'Invalid elder code.')
+        else:
+            form = UserRegistrationForm()
+        return render(request, 'careLink/family_add.html', {'form': form})
+
 
 
 # 行動状況の確認
