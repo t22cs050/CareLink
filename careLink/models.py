@@ -5,9 +5,9 @@ from .randomGenerate import generate_unique_integer
 
 class Elder(models.Model):
     # 5桁以上10桁未満の整数
-    elder_id = models.IntegerField(unique=True)
+    elder_id = models.IntegerField(unique=True,default='00000')
     # 4桁の整数
-    elder_code = models.IntegerField(unique=True)
+    elder_code = models.IntegerField(unique=True,default='0000')
 
     def save(self, *args, **kwargs):
         # elder_idを自動生成（5桁以上10桁未満）
@@ -25,7 +25,7 @@ class Elder(models.Model):
         super().save(*args, **kwargs)  # 元のsaveメソッドを呼び出す
 
 class FamilyUser(AbstractUser):
-    elder_code = models.IntegerField(unique=True) # 4桁の整数
+    elder_code = models.IntegerField(unique=True,default='0000') # 4桁の整数
 
 # --- 行動管理DB定義
 class Schedule(models.Model):

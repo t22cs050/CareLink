@@ -248,5 +248,5 @@ class elderHome(ListView):
             elder = None
         print(f"Schedules: {schedules}")  # デバッグ用
         print(f"elder:{elder}") # デバッグ用
-        return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder})
+        return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
 

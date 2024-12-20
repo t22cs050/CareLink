@@ -4,37 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>予定確認</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        p {
+            text-align: center;
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-    <h1>高齢者の予定</h1>
+
+    <h1>高齢者側ホーム（仮）</h1>
 
     <!-- 入力フォーム -->
     <form method="POST">
         {% csrf_token %}
-        <label for="elder_code">高齢者ID:</label>
-        <input type="text" id="elder_code" name="elder_code" required>
+        <label for="elder_code">高齢者コード:</label>
+        <input type="text" id="elder_code" name="elder_code" required placeholder="高齢者コードを入力">
         <button type="submit">確認</button>
     </form>
 
     {% if elder %}
-        <h2>{{ elder }} の予定</h2>
+        <h2>コード{{ elder_code }} さんの予定</h2>
         
         {% if schedules %}
             <table>
                 <thead>
                     <tr>
-                        <th>予定名</th>
                         <th>日付</th>
-                        <th>繰り返し</th>
+                        <th>予定名</th>
+                        <th>達成</th>
                         <th>説明</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for schedule in schedules %}
                         <tr>
-                            <td>{{ schedule.title }}</td>
                             <td>{{ schedule.date }}</td>
-                            <td>{{ schedule.get_recurrence_display }}</td>
+                            <td>{{ schedule.title }}</td>
+                            <td>{{ schedule.completion|yesno:"達成,未達成" }}</td>
                             <td>{{ schedule.description }}</td>
                         </tr>
                     {% endfor %}
@@ -43,9 +111,10 @@
         {% else %}
             <p>予定はありません。</p>
         {% endif %}
-    {% elif elder_id %}
-        <p>指定されたコードに該当する高齢者が見つかりませんでした。</p>
+    {% elif elder_code %}
+        <p>指定されたコードに該当するユーザーが見つかりませんでした。</p>
     {% endif %}
 
 </body>
 </html>
+
