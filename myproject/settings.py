@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "careLink.apps.CarelinkConfig"
+    "careLink.apps.CarelinkConfig",
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [

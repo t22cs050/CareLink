@@ -1,0 +1,93 @@
+{% extends 'careLink/base.html' %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f4f6f9;
+    }
+    .calendar-container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.075);
+    }
+    .day-link {
+        display: block;
+        padding: 10px;
+        transition: background-color 0.3s ease;
+    }
+    .day-link:hover {
+        background-color: rgba(0,123,255,0.1);
+        text-decoration: none;
+    }
+    @media (max-width: 768px) {
+        .btn-group-responsive {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-group-responsive > * {
+            width: 100%;
+        }
+    }
+</style>
+
+
+<div class="row align-items-center mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'careLink:calendar' month_previous.year month_previous.month %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>前月
+            </a>
+            
+            <h2 class="text-center m-0 fw-bold">{{ month_current | date:"Y年m月" }}</h2>
+            
+            <a href="{% url 'careLink:calendar' month_next.year month_next.month %}" class="btn btn-outline-secondary">
+                次月<i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="container calendar-container">    
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+            <thead class="table-dark">
+                <tr>
+                    {% for w in week_names %}
+                        <th>{{ w }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in month_days %}
+                    <tr>
+                        {% for day in week %}
+                            {% if now == day %}
+                                <td class="table-primary">
+                            {% elif month_current.month != day.month %}
+                                <td class="table-light text-muted">
+                            {% else %}
+                                <td>
+                            {% endif %}
+                                <a href="{% url 'careLink:add_schedule' day|date:'Y-m-d' %}" class="day-link 
+                                    {% if now == day %}text-primary fw-bold
+                                    {% elif month_current.month != day.month %}text-muted 
+                                    {% endif %}">
+                                    {{ day.day }}
+                                </a>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
