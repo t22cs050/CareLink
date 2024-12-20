@@ -136,21 +136,17 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 
 # --- 行動登録画面
 def add_schedule(request, date):
-    existing_schedules = Schedule.objects.filter(date=date) # その日付のスケジュールを取得
+    existing_schedules = Schedule.objects.filter(date=date) # その日のスケジュールを取得
     if request.method == 'POST':
         form = ScheduleForm(request.POST)
         if form.is_valid():
-            schedule = form.save(commit=False)
-            # バリデーションエラーを確認
-            print("Form is valid")
-            print(form.cleaned_data)
-            
+            schedule = form.save(commit=False)         
             try:
                 with transaction.atomic():
                     if schedule.recurrence != 'none':
-                        # より効率的な繰り返しスケジュール生成
+                        # --- 繰り返しスケジュール生成
                         schedules_to_create = []
-                        for i in range(12):  # 1年分ではなく、12回の繰り返しに制限
+                        for i in range(12):  # 12回の繰り返す（要検討）
                             if schedule.recurrence == 'daily':
                                 new_date = schedule.date + timedelta(days=i)
                             elif schedule.recurrence == 'weekly':
@@ -162,13 +158,10 @@ def add_schedule(request, date):
                                 title=schedule.title,
                                 date=new_date,
                                 recurrence=schedule.recurrence,
-                                description=schedule.description,
                                 completion=False,
-                                silver_code=schedule.silver_code
                             ))
                         
-                        # バルクインサート
-                        Schedule.objects.bulk_create(schedules_to_create)
+                        Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
                     else:
                         schedule.save()
                 
@@ -180,10 +173,9 @@ def add_schedule(request, date):
                     })
             
             except Exception as e:
-                messages.error(request, f'エラーが発生しました: {str(e)}')
-    
+                messages.error(request, f'エラーが発生しました: {str(e)}')    
     else:
-        form = ScheduleForm(initial={'date': date})
+        form = ScheduleForm(initial={'date': date}) # 日付を初期値として設定
     
     return render(request, 'careLink/add_schedule.html', {
         'form': form, 

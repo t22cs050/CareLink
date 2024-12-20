@@ -1,15 +1,13 @@
 {% extends 'careLink/base.html' %}
 
 {% block content %}
-    <h1>スケジュール登録</h1>
+    <h1>スケジュール登録 ({{ date }})</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.title.label_tag }} {{ form.title }}<br>
         {{ form.date.label_tag }} 
-        <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" required><br>
+        {{ form.date }}
         {{ form.recurrence.label_tag }} {{ form.recurrence }}<br>
-        {{ form.description.label_tag }} {{ form.description }}<br>
-        {{ form.silver_code.label_tag }} {{ form.silver_code }}<br>
         <button type="submit">登録</button>
     </form>
 
