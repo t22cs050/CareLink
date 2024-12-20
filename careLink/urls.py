@@ -5,9 +5,9 @@ from . import views
 
 app_name = 'careLink'
 urlpatterns = [
-    path('login', views.login, name="login"),
-    path('signin_elder', signUpElder.as_view(), name='signin_elder'),
-    path('signin_family', signUpFamily.as_view(), name='signin_family'),
+    path('login', views.user_login, name="login"),
+    path('signup_elder', signUpElder.as_view(), name='signup_elder'),
+    path('signup_family', signUpFamily.register, name='signup_family'),
     path('family/schedule/', MonthCalendar.as_view(), name='calendar'),
     path('family/<int:year>/<int:month>/', MonthCalendar.as_view(), name='calendar'),
     path('family/schedule/<str:date>/', add_schedule, name='add_schedule'),
