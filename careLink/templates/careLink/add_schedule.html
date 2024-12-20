@@ -1,37 +1,46 @@
 {% extends 'careLink/base.html' %}
+{% load widget_tweaks %}
 
 {% block content %}
-    <h1>スケジュール登録 ({{ date }})</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.title.label_tag }} {{ form.title }}<br>
-        {{ form.date.label_tag }} 
-        {{ form.date }}
-        {{ form.recurrence.label_tag }} {{ form.recurrence }}<br>
-        <button type="submit">登録</button>
-    </form>
+    <div class="container mt-4">
+        <h1>スケジュール登録 ({{ date }})</h1>
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.title.label_tag }} 
+                {{ form.title|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+                {{ form.date.label_tag }} 
+                {{ form.date|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+                {{ form.recurrence.label_tag }} 
+                {{ form.recurrence|add_class:"form-control" }}
+            </div>
+            <button type="submit" class="btn btn-primary">登録</button>
+        </form>
 
-
-    {% if existing_schedules %}
-    <h2>登録済みスケジュール</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>タイトル</th>
-                <th>繰り返し</th>
-                <th>説明</th>
-                <th>状態</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for schedule in existing_schedules %}
+        {% if existing_schedules %}
+        <h2>登録済みスケジュール</h2>
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>{{ schedule.title }}</td>
-                    <td>{{ schedule.get_recurrence_display }}</td>
-                    <td>{{ schedule.description }}</td>
+                    <th>タイトル</th>
+                    <th>繰り返し</th>
+                    <th>状態</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
+            </thead>
+            <tbody>
+                {% for schedule in existing_schedules %}
+                    <tr>
+                        <td>{{ schedule.title }}</td>
+                        <td>{{ schedule.recurrence }}</td>
+                        <td>{{ schedule.status }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
 {% endblock %}
