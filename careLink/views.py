@@ -96,7 +96,7 @@ class signUpElder(CreateView):
 class signUpFamily(CreateView):
     fields = ('name', 'password')
     template_name = 'careLink/family_add.html'
-    success_url = '/careLink/login'
+    success_url = '/careLink/user_login'
     def register(request):
         if request.method == 'POST':
             form = UserRegistrationForm(request.POST)
@@ -105,7 +105,7 @@ class signUpFamily(CreateView):
                 # DBにelder_codeが存在する場合登録が完了する
                 if form.is_valid() and Elder.objects.filter(elder_code=form.cleaned_data.get('elder_code')).exists():
                     user = form.save()
-                    return redirect('login')
+                    return redirect('user_login')
                 
                 # 存在しなければエラーを返す
                 else:
