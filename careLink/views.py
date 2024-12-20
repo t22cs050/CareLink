@@ -16,7 +16,27 @@ from .randomGenerate import generate_unique_integer
 
 
 def login(request):
+    if isSignUpedElder(request):
+        print("高齢者ログインされている")
+        return render(request, 'careLink/family_add.html')
+    print("高齢者ログインされていない")
     return render(request, 'careLink/login.html')
+
+
+def get_elder_from_cookie(request):
+    """
+    クッキーからElderIdとElderCodeを取得する関数。
+    :param request: HttpRequestオブジェクト
+    :return: elder_idとelder_codeのタプル（存在しない場合はNone, None）
+    """
+    elder_id = request.COOKIES.get('elder_id')
+    elder_code = request.COOKIES.get('elder_code')
+    return elder_id, elder_code
+
+
+def isSignUpedElder(request):
+    elder_id, elder_code = get_elder_from_cookie(request)
+    return (elder_id and elder_code)
 
 
 class signUpElder(CreateView):
@@ -25,6 +45,7 @@ class signUpElder(CreateView):
     template_name = 'careLink/elder_add.html'
     success_url = '/careLink/login'
 
+    # アクセスするときに呼び出される
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -37,13 +58,22 @@ class signUpElder(CreateView):
         # セッションからelder_idとelder_codeを取得してコンテキストに追加
         context['elder_id'] = self.request.session['elder_id']
         context['elder_code'] = self.request.session['elder_code']
+        # print("get_context_data")
 
         return context
-
+    
+    # データベースに保存
     def form_valid(self, form):
         # セッションからelder_idとelder_codeを取得してセット
-        form.instance.elder_id = self.request.session.pop('elder_id')
-        form.instance.elder_code = self.request.session.pop('elder_code')
+        id = self.request.session.pop('elder_id')
+        form.instance.elder_id = id
+        code = self.request.session.pop('elder_code')
+        form.instance.elder_code = code
+
+        # レスポンスを取得し、クッキーにelder_idとelder_codeを保存
+        response = super().form_valid(form)
+        response.set_cookie('elder_id', id, max_age=60*60*24*120)  # 120日間有効
+        response.set_cookie('elder_code', code, max_age=60*60*24*120)
 
         return super().form_valid(form)
 
@@ -159,3 +189,10 @@ def add_schedule(request, date):
         'date': date,
         'existing_schedules': existing_schedules
     })
+
+
+class elderHome(ListView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+    
