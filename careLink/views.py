@@ -20,10 +20,14 @@ import requests
 
 # --- ログインview
 def user_login(request):
+    # クッキーに高齢者のログイン情報があればURLを変更する
+    if isSignUpedElder(request):
+        return redirect('elder/home')
+
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -32,11 +36,7 @@ def user_login(request):
             # エラーメッセージの表示
             return render(request, 'careLink/login.html', {'error': 'Invalid credentials or elder code.'})
     
-    if isSignUpedElder(request):
-        print("高齢者ログインされている")
-        return render(request, 'careLink/family_add.html')
-    else:
-        print("高齢者ログインされていない")
+    # すべての条件に合致しない場合の処理（例えば、GETリクエストの場合）
     return render(request, 'careLink/login.html')
 
 
