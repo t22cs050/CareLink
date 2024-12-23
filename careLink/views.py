@@ -87,7 +87,6 @@ class signUpFamily(CreateView):
         return render(request, 'careLink/family_add.html', {'form': form})
 
 
-
 # --- 行動状況の確認
 def result_view(request):
     form = DateInputForm()
@@ -95,16 +94,17 @@ def result_view(request):
     schedules = Schedule.objects.filter(date=today)  # 今日のスケジュールを取得
     return render(request, 'careLink/result.html', {'form': form, 'schedules': schedules})
 
+# --- 行動状況の取得を行う関数
 def get_schedules(request):
     if request.method == 'GET':
         selected_date = request.GET.get('date')
-        schedules = Schedule.objects.filter(date=selected_date)
+        results = Schedule.objects.filter(date=selected_date) # 検索
         schedule_data = [
             {
-                'date': schedule.date,
-                'completion': '完了' if schedule.completion else '未完了'
+                'title': item.title,
+                'completion': '完了' if item.completion else '未完了'
             }
-            for schedule in schedules
+            for item in results
         ]
         return JsonResponse(schedule_data, safe=False)
 
