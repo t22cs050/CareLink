@@ -231,27 +231,23 @@ def add_schedule(request, date):
     })
 
 
-def elderHome(request):    
-    def get(self, request):
-        # GET リクエストの場合、空のフォームを表示
-        return render(request, 'careLink/elder_home.html')
+def elderHome(request):
 
-    def post(self, request):
-        elder_code = request.POST.get('elder_code')
-        print(f"Received elder_code: {elder_code}")  # デバッグ用
-        if elder_code:
-            # elder_code に基づいてスケジュールをフィルタリング
-            schedules = Schedule.objects.filter(silver_code=elder_code).order_by('date')
-            try:
-                # elder_code に基づいて Elder インスタンスを取得
-                elder = Elder.objects.get(elder_code=elder_code)
-                print(f"elder:{elder}")
-            except Elder.DoesNotExist:
-                elder = None
-        else:
-            schedules = []
+    elder_code = request.COOKIES.get('elder_code')
+    print(f"Received elder_code: {elder_code}")  # デバッグ用
+    if elder_code:
+        # elder_code に基づいてスケジュールをフィルタリング
+        schedules = Schedule.objects.filter(silver_code=elder_code).order_by('date')
+        try:
+            # elder_code に基づいて Elder インスタンスを取得
+            elder = Elder.objects.get(elder_code=elder_code)
+            print(f"elder:{elder}")
+        except Elder.DoesNotExist:
             elder = None
-        print(f"Schedules: {schedules}")  # デバッグ用
-        print(f"elder:{elder}") # デバッグ用
-        return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
+    else:
+        schedules = []
+        elder = None
+    print(f"Schedules: {schedules}")  # デバッグ用
+    print(f"elder:{elder}") # デバッグ用
+    return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
 
