@@ -76,14 +76,6 @@
 
     <h1>高齢者側ホーム（仮）</h1>
 
-    <!-- 入力フォーム -->
-    <form method="POST">
-        {% csrf_token %}
-        <label for="elder_code">高齢者コード:</label>
-        <input type="text" id="elder_code" name="elder_code" required placeholder="高齢者コードを入力">
-        <button type="submit">確認</button>
-    </form>
-
     {% if elder %}
         <h2>コード{{ elder_code }} さんの予定</h2>
         
@@ -91,30 +83,142 @@
             <table>
                 <thead>
                     <tr>
+                        <th></th>
                         <th>日付</th>
                         <th>予定名</th>
                         <th>達成</th>
                         <th>説明</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="schedule-list">
                     {% for schedule in schedules %}
-                        <tr>
-                            <td>{{ schedule.date }}</td>
-                            <td>{{ schedule.title }}</td>
-                            <td>{{ schedule.completion|yesno:"達成,未達成" }}</td>
-                            <td>{{ schedule.description }}</td>
-                        </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>{{ schedule.date }}</td>
+                        <td>{{ schedule.title }}</td>
+                        <td>{{ schedule.completion|yesno:"達成,未達成" }}</td>
+                        <td>{{ schedule.description }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
+                <script>
+                    const scheduleList = document.getElementById('schedule-list');
+                    const items = scheduleList.getElementsByTagName('tr');
+                    const nomalHeight = items[0].style.height;
+                    const rowsPerPage = 5; // 1ページに表示する行数
+                    let currentRows = 0; // 現在選択している行
+                    
+                    // 引数rowからrowsPerPage分だけitemsを表示
+                    function displayPage(row) {
+                        clearList();
+
+                        let startRow = row - Math.floor(rowsPerPage / 2);
+                        if (startRow < 0){startRow = 0;}
+                        else if (startRow > items.length - rowsPerPage){
+                            startRow = items.length - rowsPerPage;
+                        }
+
+                        for (let i = startRow; i < items.length && i < startRow+rowsPerPage; i++) {
+                            items[i].style.display = 'table-row';
+                            // 初めの行だけ高さを変更
+                            if (i === row) {
+                                items[i].style.height = '100px'; // 任意の高さに設定
+                                items[i].style.backgroundColor = '#90ee90'; // 緑色
+                                showCheckBox(i);
+                            }
+                            else{
+                                items[i].style.height = nomalHeight; // 任意の高さに設定
+                                items[i].style.backgroundColor = '#cccccc'; // 灰色
+                                hideCheckBox(i);
+                            }
+                        }
+                    }
+                    // 表示範囲外の要素を非表示にする
+                    function clearList(){
+                        for (let i = 0; i < items.length; i++) {
+                            items[i].style.display = 'none';
+                        }
+                    }
+
+                    function getCookie(name) {
+                        const value = `; ${document.cookie}`;
+                        const parts = value.split(`; ${name}=`);
+                        if (parts.length === 2) return parts.pop().split(';').shift();
+                    }
+
+                    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', () => {
+                            if (event.target.checked) {
+                                console.log('チェックボックスがオンになりました');
+                                // チェックボックスがオンになったときの処理
+                                fetch('home', {
+                                    method: 'POST',
+                                    body: 'data',
+                                    headers: {                         
+                                        'X-CSRFToken': getCookie('csrftoken') // CSRFトークンを設定                                    
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Network response was not ok');
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    console.log(data);
+                                    // サーバーからのレスポンスを処理
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                });
+                            } else {
+                                console.log('チェックボックスがオフになりました');
+                                // チェックボックスがオフになったときの処理
+                            }
+                        });
+                    });
+
+                    function hideCheckBox(i){
+                        checkboxes[i].style.display = 'none';
+                    }
+                    function showCheckBox(i){
+                        checkboxes[i].style.display = 'table-row';
+                    }
+                    
+                    // 初期表示時は上から0行目から表示
+                    displayPage(0);
+                </script>
             </table>
+            <button id="scroll-up">↑</button>
+            <button id="scroll-down">↓</button>
+            <script>
+                // 上矢印ボタンクリック時の処理
+                const scrollUpButton = document.getElementById('scroll-up');
+                scrollUpButton.addEventListener('click', () => {
+                    console.log("上ボタンクリックされました");
+                    if (currentRows > 0) {
+                        currentRows--;
+                        displayPage(currentRows);
+                    }
+                });
+                
+                // 下矢印ボタンクリック時の処理
+                const scrollDownButton = document.getElementById('scroll-down');
+                scrollDownButton.addEventListener('click', () => {
+                    console.log("下ボタンクリックされました");
+                    if (currentRows < items.length-1) {
+                        currentRows++;
+                        displayPage(currentRows);
+                    }
+                });
+            </script>
         {% else %}
             <p>予定はありません。</p>
         {% endif %}
     {% elif elder_code %}
         <p>指定されたコードに該当するユーザーが見つかりませんでした。</p>
     {% endif %}
-
 </body>
 </html>
 

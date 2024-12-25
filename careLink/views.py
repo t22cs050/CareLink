@@ -1,5 +1,5 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
@@ -232,6 +232,11 @@ def add_schedule(request, date):
 
 
 def elderHome(request):
+
+    if (request.method == 'POST'):
+        # データの処理
+        result = {'データを受け取りました'}
+        return JsonResponse(result)
 
     elder_code = request.COOKIES.get('elder_code')
     print(f"Received elder_code: {elder_code}")  # デバッグ用
