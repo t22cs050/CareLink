@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db import transaction
+from django.db.models import Max
 from django.template.loader import render_to_string
 
 from .models import Elder, Schedule
@@ -16,7 +17,9 @@ from . import mixins # カレンダー関連のクラスを定義したやつ
 from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
-from django.db.models import Max
+
+import json
+
 
 # --- ログインview
 def user_login(request):
@@ -186,11 +189,6 @@ def add_schedule(request, date):
         'existing_schedules': existing_schedules
     })
 
-# views.pyの一部
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-
 # --- 行動順序を変更する関数
 def save_order(request):
     if request.method == 'POST':
@@ -204,3 +202,17 @@ def save_order(request):
         
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'fail'}, status=400)
+
+# --- 登録データを削除する関数
+def delete_schedule(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            schedule_id = data.get('schedule_id')
+            schedule = Schedule.objects.get(id=schedule_id)
+            schedule.delete()  # スケジュールを削除
+            print('delete!')
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})

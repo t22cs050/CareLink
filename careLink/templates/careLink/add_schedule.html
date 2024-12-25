@@ -3,7 +3,31 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h1>スケジュール登録 ({{ date }})</h1>
+        {% if existing_schedules %}
+        <h2>登録済みスケジュール</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>タイトル</th>
+                    <th>繰り返し</th>
+                    <th>状態</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="schedule-list">
+                {% for schedule in existing_schedules %}
+                    <tr data-id = '{{ schedule.id }}'>
+                        <td>{{ schedule.title }}</td>
+                        <td>{{ schedule.recurrence }}</td>
+                        <td>{{ schedule.status }}</td>
+                        <td><button type="button" class="btn btn-danger delete-button" data-id="{{ schedule.id }}">削除</button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h2>新規追加 ({{ date }})</h2>
         <form method="post" class="mb-4">
             {% csrf_token %}
             <div class="mb-3">
@@ -20,28 +44,6 @@
             </div>
             <button type="submit" class="btn btn-primary">登録</button>
         </form>
-
-        {% if existing_schedules %}
-        <h2>登録済みスケジュール</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>タイトル</th>
-                    <th>繰り返し</th>
-                    <th>状態</th>
-                </tr>
-            </thead>
-            <tbody id="schedule-list">
-                {% for schedule in existing_schedules %}
-                    <tr data-id = '{{ schedule.id }}'>
-                        <td>{{ schedule.title }}</td>
-                        <td>{{ schedule.recurrence }}</td>
-                        <td>{{ schedule.status }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
     </div>
 
 <script>
@@ -65,5 +67,32 @@
             });
         }
     });
+
+    // 予定の削除を行う処理
+    el.addEventListener('click', function(event) {
+        if (event.target.classList.contains('delete-button')) {
+            var scheduleId = event.target.dataset.id;
+            if (confirm('本当に削除しますか？')) {
+                fetch('/careLink/delete_schedule/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ schedule_id: scheduleId }) // schedule_idを送信
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        event.target.closest('tr').remove(); // 行を削除
+                    } else {
+                        alert('削除に失敗しました。');
+                    }
+                });
+            }
+        }
+    });
+
+
+    
 </script>
 {% endblock %}

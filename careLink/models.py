@@ -42,7 +42,7 @@ class Schedule(models.Model):
     date = models.DateField() # 日付
     recurrence = models.CharField(max_length=10, choices=RECURRING_CHOICES, default='none') # 繰り返し設定
     completion = models.BooleanField(default=False) # 状態（T/F）
-    sequence = models.IntegerField(default=1)# 行動順序
+    sequence = models.IntegerField(default=1) # 行動順序
     silver_code = models.CharField(max_length=100, default='')  # 高齢者コード
 
     def __str__(self):
