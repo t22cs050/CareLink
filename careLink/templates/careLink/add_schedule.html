@@ -31,9 +31,9 @@
                     <th>状態</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="schedule-list">
                 {% for schedule in existing_schedules %}
-                    <tr>
+                    <tr data-id = '{{ schedule.id }}'>
                         <td>{{ schedule.title }}</td>
                         <td>{{ schedule.recurrence }}</td>
                         <td>{{ schedule.status }}</td>
@@ -43,4 +43,27 @@
         </table>
         {% endif %}
     </div>
+
+<script>
+    var el = document.getElementById('schedule-list');
+    console.log(el)
+    var sortable = Sortable.create(el, {
+        onEnd: function (evt) {
+            var order = [];
+            for (var i = 0; i < el.children.length; i++) {
+                order.push(el.children[i].getAttribute('data-id'));
+            }
+            console.log(order)
+            // AJAXリクエストで行動順序を保存
+            fetch('/careLink/save_order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ order: order })
+            });
+        }
+    });
+</script>
 {% endblock %}

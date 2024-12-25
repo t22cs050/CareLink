@@ -16,7 +16,7 @@ from . import mixins # カレンダー関連のクラスを定義したやつ
 from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
-
+from django.db.models import Max
 
 # --- ログインview
 def user_login(request):
@@ -134,11 +134,14 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 
 # --- 行動登録画面
 def add_schedule(request, date):
-    existing_schedules = Schedule.objects.filter(date=date) # その日のスケジュールを取得
+    existing_schedules = Schedule.objects.filter(date=date).order_by('sequence')  # その日のスケジュールを取得
     if request.method == 'POST':
         form = ScheduleForm(request.POST)
         if form.is_valid():
-            schedule = form.save(commit=False)         
+            schedule = form.save(commit=False)
+            max_sequence = Schedule.objects.filter(date=date).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
+            print(max_sequence)     
+            
             try:
                 with transaction.atomic():
                     if schedule.recurrence != 'none':
@@ -155,12 +158,14 @@ def add_schedule(request, date):
                             schedules_to_create.append(Schedule(
                                 title=schedule.title,
                                 date=new_date,
+                                sequence = (max_sequence or 0) + 1,
                                 recurrence=schedule.recurrence,
                                 completion=False,
                             ))
                         
                         Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
                     else:
+                        schedule.sequence = (max_sequence or 0) + 1
                         schedule.save()
                 
                 messages.success(request, 'スケジュールを正常に登録しました。')
@@ -180,3 +185,22 @@ def add_schedule(request, date):
         'date': date,
         'existing_schedules': existing_schedules
     })
+
+# views.pyの一部
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+# --- 行動順序を変更する関数
+def save_order(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        order = data.get('order', [])
+        
+        # 順序を更新
+        for index, schedule_id in enumerate(order):
+            Schedule.objects.filter(id=schedule_id).update(sequence=index + 1)
+        print('save!')
+        
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'fail'}, status=400)

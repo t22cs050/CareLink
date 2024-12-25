@@ -27,6 +27,8 @@ class Elder(models.Model):
 class FamilyUser(AbstractUser):
     elder_code = models.IntegerField(unique=True) # 4桁の整数
 
+    REQUIRED_FIELDS = ['elder_code', ]
+
 # --- 行動管理DB定義
 class Schedule(models.Model):
     RECURRING_CHOICES = [
@@ -39,8 +41,8 @@ class Schedule(models.Model):
     title = models.CharField(max_length=100, default='') # 行動名
     date = models.DateField() # 日付
     recurrence = models.CharField(max_length=10, choices=RECURRING_CHOICES, default='none') # 繰り返し設定
-    description = models.TextField(blank=True)      # 説明
     completion = models.BooleanField(default=False) # 状態（T/F）
+    sequence = models.IntegerField(default=1)# 行動順序
     silver_code = models.CharField(max_length=100, default='')  # 高齢者コード
 
     def __str__(self):
