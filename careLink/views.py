@@ -117,7 +117,7 @@ class signUpFamily(CreateView):
                 # DBにelder_codeが存在する場合登録が完了する
                 if form.is_valid() and Elder.objects.filter(elder_code=form.cleaned_data.get('elder_code')).exists():
                     user = form.save()
-                    return redirect('user_login')
+                    return redirect('/careLink/login')
                 
                 # 存在しなければエラーを返す
                 else:

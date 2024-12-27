@@ -26,7 +26,7 @@ class Elder(models.Model):
 
 
 class FamilyUser(AbstractUser):
-    elder_code = models.IntegerField(unique=True,default='0000') # 4桁の整数
+    elder_code = models.IntegerField(default='0000') # 4桁の整数
 
 
     REQUIRED_FIELDS = ['elder_code', ]
