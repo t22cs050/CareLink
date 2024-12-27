@@ -94,13 +94,13 @@
 </head>
 <body>
 
-    <h1>予定確認</h1>
+    <h1>コード{{ elder.elder_code }}さん  今日の予定</h1>
 
     {% if elder %}
         <div class="task-container" id="task-container">
             {% for schedule in schedules %}
             <div class="task" data-index="{{ forloop.counter0 }}">
-                <p>{{ schedule.title }}</p>
+                <p>{{ schedule.time }}  {{ schedule.title }}</p>
                 <div class="status {% if schedule.completion %}completed{% else %}not-completed{% endif %}" data-index="{{ forloop.counter0 }}">
                     <span>{% if schedule.completion %}達成{% else %}未達成{% endif %}</span>
                 </div>
