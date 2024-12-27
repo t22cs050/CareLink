@@ -175,6 +175,7 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 # --- 行動登録画面
 def add_schedule(request, date):
     existing_schedules = Schedule.objects.filter(date=date).order_by('sequence')  # その日のスケジュールを取得
+    elder_code = request.user.elder_code # ログインしているユーザの情報を取得
     if request.method == 'POST':
         form = ScheduleForm(request.POST)
         if form.is_valid():
@@ -201,11 +202,13 @@ def add_schedule(request, date):
                                 sequence = (max_sequence or 0) + 1,
                                 recurrence=schedule.recurrence,
                                 completion=False,
+                                silver_code = elder_code,
                             ))
                         
                         Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
                     else:
                         schedule.sequence = (max_sequence or 0) + 1
+                        schedule.silver_code = elder_code
                         schedule.save()
                 
                 messages.success(request, 'スケジュールを正常に登録しました。')
@@ -225,7 +228,7 @@ def add_schedule(request, date):
         'date': date,
         'existing_schedules': existing_schedules
     })
-  
+
 def elderHome(request):
 
     if (request.method == 'POST'):

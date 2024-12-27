@@ -5,7 +5,7 @@ from .views import get_schedules
 
 app_name = 'careLink'
 urlpatterns = [
-    path('login', views.user_login, name="login"),
+    path('login', views.user_login, name="user_login"),
     path('signup_elder', signUpElder.as_view(), name='signup_elder'),
     path('signup_family', signUpFamily.register, name='signup_family'),
     path('elder/home', views.elderHome, name='elder_home'),
