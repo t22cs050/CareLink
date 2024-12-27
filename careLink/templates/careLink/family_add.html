@@ -1,5 +1,33 @@
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">登録</button>
-</form>
+{% extends 'careLink/base.html' %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="container mt-4">
+    <h1> ユーザー登録 </h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            {{ form.username.label_tag }}
+            {{ form.username|add_class:"form-control" }}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.password1.label_tag }}
+            {{ form.password1|add_class:"form-control" }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.password2.label_tag }}
+            {{ form.password2|add_class:"form-control" }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.elder_code.label_tag }}
+            {{ form.elder_code|add_class:"form-control" }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">登録</button>
+    </form>
+    <a href="login" class="btn btn-link">ログインページに戻る</a>
+</div>
+{% endblock %}

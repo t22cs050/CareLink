@@ -1,18 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Elder追加</title>
-</head>
-<body>
-    <h1>Elderの登録</h1>
-    
-    <!-- 生成されたelder_codeを表示 -->
-    <p>あなたの Elder Code は <strong>{{ elder_code }}</strong> です。登録しますか？</p>
+{% extends 'careLink/base.html' %}
+{% load widget_tweaks %}
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">登録</button>
-    </form>
-    <a href="login">ログインページに戻る</a>
-</body>
-</html>
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Elderの登録</h1>
+        
+        <!-- 生成されたelder_codeを表示 -->
+        <p>あなたの Elder Code は <strong>{{ elder_code }}</strong> です。登録しますか？</p>
+
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">登録</button>
+        </form>
+        
+        <a href="login" class="btn btn-link">ログインページに戻る</a>
+    </div>
+{% endblock %}

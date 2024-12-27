@@ -1,19 +1,24 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db import transaction
+from django.db.models import Max
+from django.template.loader import render_to_string
 
 from .models import Elder, Schedule
-from .forms import ScheduleForm             # 行動登録に用いるフォーム
-from .forms  import UserRegistrationForm    # ユーザ登録に用いるフォーム 
+from .forms import ScheduleForm            # 行動登録に用いるフォーム
+from .forms import UserRegistrationForm    # ユーザ登録に用いるフォーム 
+from .forms import DateInputForm
 from . import mixins # カレンダー関連のクラスを定義したやつ
 
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
+
+import json
 
 
 # --- ログインview
@@ -85,31 +90,28 @@ class signUpFamily(CreateView):
         return render(request, 'careLink/family_add.html', {'form': form})
 
 
+# --- 行動状況の確認
+def result_view(request):
+    form = DateInputForm()
+    today = datetime.today()  # 今日の日付を取得
+    schedules = Schedule.objects.filter(date=today)  # 今日のスケジュールを取得
+    return render(request, 'careLink/result.html', {'form': form, 'schedules': schedules})
 
-# 行動状況の確認
-def result(request):
-    # クエリパラメータから日付情報を取得
-    date_str = request.GET.get('date')
-    selected_date = None
+# --- 行動状況の取得を行う関数
+def get_schedules(request):
+    if request.method == 'GET':
+        selected_date = request.GET.get('date')
+        results = Schedule.objects.filter(date=selected_date) # 検索
+        schedule_data = [
+            {
+                'title': item.title,
+                'completion': '完了' if item.completion else '未完了'
+            }
+            for item in results
+        ]
+        return JsonResponse(schedule_data, safe=False)
 
-    if date_str:
-        try:
-            # 日付情報をパース
-            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = None  # パースエラー時はNoneに設定
-
-    # 現在の月を取得
-    month_current = datetime.now()
-
-    # テンプレートにデータを渡す
-    return render(request, 'careLink/result.html', {
-        'selected_date': selected_date,
-        'month_current': month_current,
-    })
-
-
-# --- 月間カレンダーを表示するビュー ---
+# --- 月間カレンダーを表示するビュー
 class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
     
     template_name = 'careLink/result-calender.html'
@@ -119,7 +121,6 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
         calendar_context = self.get_month_calendar()
         context.update(calendar_context)
         return context
-
 
 
 # --- 月間カレンダーを表示するビュー ---
@@ -136,21 +137,20 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 
 # --- 行動登録画面
 def add_schedule(request, date):
-    existing_schedules = Schedule.objects.filter(date=date) # その日付のスケジュールを取得
+    existing_schedules = Schedule.objects.filter(date=date).order_by('sequence')  # その日のスケジュールを取得
     if request.method == 'POST':
         form = ScheduleForm(request.POST)
         if form.is_valid():
             schedule = form.save(commit=False)
-            # バリデーションエラーを確認
-            print("Form is valid")
-            print(form.cleaned_data)
+            max_sequence = Schedule.objects.filter(date=date).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
+            print(max_sequence)     
             
             try:
                 with transaction.atomic():
                     if schedule.recurrence != 'none':
-                        # より効率的な繰り返しスケジュール生成
+                        # --- 繰り返しスケジュール生成
                         schedules_to_create = []
-                        for i in range(12):  # 1年分ではなく、12回の繰り返しに制限
+                        for i in range(12):  # 12回の繰り返す（要検討）
                             if schedule.recurrence == 'daily':
                                 new_date = schedule.date + timedelta(days=i)
                             elif schedule.recurrence == 'weekly':
@@ -161,15 +161,14 @@ def add_schedule(request, date):
                             schedules_to_create.append(Schedule(
                                 title=schedule.title,
                                 date=new_date,
+                                sequence = (max_sequence or 0) + 1,
                                 recurrence=schedule.recurrence,
-                                description=schedule.description,
                                 completion=False,
-                                silver_code=schedule.silver_code
                             ))
                         
-                        # バルクインサート
-                        Schedule.objects.bulk_create(schedules_to_create)
+                        Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
                     else:
+                        schedule.sequence = (max_sequence or 0) + 1
                         schedule.save()
                 
                 messages.success(request, 'スケジュールを正常に登録しました。')
@@ -180,13 +179,40 @@ def add_schedule(request, date):
                     })
             
             except Exception as e:
-                messages.error(request, f'エラーが発生しました: {str(e)}')
-    
+                messages.error(request, f'エラーが発生しました: {str(e)}')    
     else:
-        form = ScheduleForm(initial={'date': date})
+        form = ScheduleForm(initial={'date': date}) # 日付を初期値として設定
     
     return render(request, 'careLink/add_schedule.html', {
         'form': form, 
         'date': date,
         'existing_schedules': existing_schedules
     })
+
+# --- 行動順序を変更する関数
+def save_order(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        order = data.get('order', [])
+        
+        # 順序を更新
+        for index, schedule_id in enumerate(order):
+            Schedule.objects.filter(id=schedule_id).update(sequence=index + 1)
+        print('save!')
+        
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'fail'}, status=400)
+
+# --- 登録データを削除する関数
+def delete_schedule(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            schedule_id = data.get('schedule_id')
+            schedule = Schedule.objects.get(id=schedule_id)
+            schedule.delete()  # スケジュールを削除
+            print('delete!')
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})

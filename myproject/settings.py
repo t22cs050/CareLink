@@ -39,6 +39,7 @@ AUTH_USER_MODEL = 'careLink.FamilyUser'
 # Application definition
 
 INSTALLED_APPS = [
+    'widget_tweaks', # pip install django-widget-tweaks
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "careLink.apps.CarelinkConfig",
     'django_bootstrap5',
+    
 ]
 
 MIDDLEWARE = [

@@ -1,39 +1,108 @@
 {% extends 'careLink/base.html' %}
+{% load widget_tweaks %}
 
 {% block content %}
-    <h1>スケジュール登録</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.title.label_tag }} {{ form.title }}<br>
-        {{ form.date.label_tag }} 
-        <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" required><br>
-        {{ form.recurrence.label_tag }} {{ form.recurrence }}<br>
-        {{ form.description.label_tag }} {{ form.description }}<br>
-        {{ form.silver_code.label_tag }} {{ form.silver_code }}<br>
-        <button type="submit">登録</button>
-    </form>
-
-
-    {% if existing_schedules %}
-    <h2>登録済みスケジュール</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>タイトル</th>
-                <th>繰り返し</th>
-                <th>説明</th>
-                <th>状態</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for schedule in existing_schedules %}
+    <div class="container mt-4">
+        {% if existing_schedules %}
+        <h2>登録済みスケジュール</h2>
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>{{ schedule.title }}</td>
-                    <td>{{ schedule.get_recurrence_display }}</td>
-                    <td>{{ schedule.description }}</td>
+                    <th>タイトル</th>
+                    <th>時間</th>
+                    <th>繰り返し</th>
+                    <th></th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
+            </thead>
+            <tbody id="schedule-list">
+                {% for schedule in existing_schedules %}
+                    <tr data-id = '{{ schedule.id }}'>
+                        <td>{{ schedule.title }}</td>
+                        <td>{{ schedule.time }}</td>
+                        <td>{{ schedule.recurrence }}</td>
+                        <td><button type="button" class="btn btn-danger delete-button" data-id="{{ schedule.id }}">削除</button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+
+
+        <h2>新規追加 ({{ date }})</h2>
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.title.label_tag }} 
+                {{ form.title|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+                {{ form.date.label_tag }} 
+                {{ form.date|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+                {{ form.time.label_tag }} 
+                {{ form.time|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
+                {{ form.recurrence.label_tag }} 
+                {{ form.recurrence|add_class:"form-control" }}
+            </div>
+            
+            <div class="p-3">
+                <button type="submit" class="btn btn-primary">登録</button>
+                <a class="btn btn-outline-secondary" href="{% url 'careLink:calendar' %}">戻る</a>            
+            </div>
+        </form>
+    </div>
+
+<script>
+    var el = document.getElementById('schedule-list');
+    console.log(el)
+    var sortable = Sortable.create(el, {
+        onEnd: function (evt) {
+            var order = [];
+            for (var i = 0; i < el.children.length; i++) {
+                order.push(el.children[i].getAttribute('data-id'));
+            }
+            console.log(order)
+            // AJAXリクエストで行動順序を保存
+            fetch('/careLink/save_order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ order: order })
+            });
+        }
+    });
+
+    // 予定の削除を行う処理
+    el.addEventListener('click', function(event) {
+        if (event.target.classList.contains('delete-button')) {
+            var scheduleId = event.target.dataset.id;
+            if (confirm('本当に削除しますか？')) {
+                fetch('/careLink/delete_schedule/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ schedule_id: scheduleId }) // schedule_idを送信
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        event.target.closest('tr').remove(); // 行を削除
+                    } else {
+                        alert('削除に失敗しました。');
+                    }
+                });
+            }
+        }
+    });
+
+
+    
+</script>
 {% endblock %}

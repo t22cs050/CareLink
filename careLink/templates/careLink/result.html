@@ -1,25 +1,80 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>選択された日付</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center mt-5">行動状況の確認</h1>
-        <p class="text-center">
-            {% if selected_date %}
-                <strong>{{ selected_date }}</strong> 
-            {% else %}
-                日付が選択されていません。
-            {% endif %}
-        </p>
-        <div class="text-center mt-4">
-            <a href="{% url 'careLink:month' month_current.year month_current.month %}" class="btn btn-primary">戻る</a>
+{% extends 'careLink/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">careApp</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'careLink:login' %}">test</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'careLink:calendar' %}">スケジュール</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'careLink:result' %}">行動の確認</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">ヘルプ</a>
+                </li>
+            </ul>
         </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4">ToDo確認</h2>
+        <form id="date-form" class="mb-4">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+        </form>
+
+        <h2 class="mb-3">行動状況:</h2>
+        <ul id="schedule-list" class="list-group">
+            <!-- JSによって動的に表示（ajax） -->
+        </ul>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+    <script>
+        $(document).ready(function() {
+            // 初期表示を行う場合
+            const defaultDate = $('#id_date').val();
+            fetchSchedules(defaultDate); // データ表示
+
+            // 日付が変更されたときの処理
+            $('#id_date').change(function() {
+                const selectedDate = $(this).val();
+                fetchSchedules(selectedDate); // データ表示
+            });
+            
+            // --- 動的に表示させる関数
+            function fetchSchedules(date) {
+                $.ajax({
+                    url: "{% url 'careLink:get_schedules' %}",
+                    data: { 'date': date },
+                    success: function(data) {
+                        $('#schedule-list').empty();  // リストをクリア
+
+                        // データが存在する場合
+                        if (data.length > 0) {
+                            data.forEach(function(schedule) {
+                                $('#schedule-list').append('<li class="list-group-item">' + schedule.title + ' - ' + schedule.completion + '</li>');
+                            });
+                        
+                        // データが存在しない場合
+                        } else {
+                            $('#schedule-list').append('<li class="list-group-item">データがありません。</li>');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+{% endblock %}
