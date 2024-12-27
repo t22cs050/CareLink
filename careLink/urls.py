@@ -12,4 +12,5 @@ urlpatterns = [
     path('family/schedule/', MonthCalendar.as_view(), name='calendar'),
     path('family/<int:year>/<int:month>/', MonthCalendar.as_view(), name='calendar'),
     path('family/schedule/<str:date>/', add_schedule, name='add_schedule'),
+    path('update_schedule', views.update_schedule, name="update_schedule")
 ]
