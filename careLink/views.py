@@ -1,5 +1,5 @@
 from django.views.generic import ListView, CreateView, DeleteView, TemplateView
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
@@ -17,16 +17,20 @@ from . import mixins # カレンダー関連のクラスを定義したやつ
 from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
 from .randomGenerate import generate_unique_integer
-
+import requests
 import json
 
 
 # --- ログインview
 def user_login(request):
+    # クッキーに高齢者のログイン情報があればURLを変更する
+    if isSignUpedElder(request):
+        return redirect('elder/home')
+
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -35,15 +39,36 @@ def user_login(request):
             # エラーメッセージの表示
             return render(request, 'careLink/login.html', {'error': 'Invalid credentials or elder code.'})
     
+    # すべての条件に合致しない場合の処理（例えば、GETリクエストの場合）
     return render(request, 'careLink/login.html')
+
+
+def get_elder_from_cookie(request):
+    """
+    クッキーからElderIdとElderCodeを取得する関数。
+    :param request: HttpRequestオブジェクト
+    :return: elder_idとelder_codeのタプル（存在しない場合はNone, None）
+    """
+    if 'elder_id' in request.COOKIES:
+        print("クッキー、あります")
+    elder_id = request.COOKIES.get('elder_id')
+    elder_code = request.COOKIES.get('elder_code')
+    print(f"elder_id: {elder_id}, elder_code: {elder_code}")  # デバッグ用出力
+    return elder_id, elder_code
+
+
+def isSignUpedElder(request):
+    elder_id, elder_code = get_elder_from_cookie(request)
+    return (elder_id and elder_code)
 
 
 class signUpElder(CreateView):
     model = Elder
     fields = ()
     template_name = 'careLink/elder_add.html'
-    success_url = '/careLink/login'
+    success_url = '/careLink/elder/home'
 
+    # アクセスするときに呼び出される
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -56,22 +81,34 @@ class signUpElder(CreateView):
         # セッションからelder_idとelder_codeを取得してコンテキストに追加
         context['elder_id'] = self.request.session['elder_id']
         context['elder_code'] = self.request.session['elder_code']
-
+        # print("get_context_data")        
+        
         return context
-
+    
+    # データベースに保存
     def form_valid(self, form):
         # セッションからelder_idとelder_codeを取得してセット
-        form.instance.elder_id = self.request.session.pop('elder_id')
-        form.instance.elder_code = self.request.session.pop('elder_code')
+        id = self.request.session.pop('elder_id')
+        form.instance.elder_id = id
+        code = self.request.session.pop('elder_code')
+        form.instance.elder_code = code
 
-        return super().form_valid(form)
+        # データベースに保存
+        form.instance.save()
+
+        # Cookie に elder_id と elder_code を保存
+        response = super().form_valid(form)
+        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
+        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+
+        return response
 
 
 # --- 家族側sginup画面
 class signUpFamily(CreateView):
     fields = ('name', 'password')
     template_name = 'careLink/family_add.html'
-    success_url = '/careLink/login'
+    success_url = '/careLink/user_login'
     def register(request):
         if request.method == 'POST':
             form = UserRegistrationForm(request.POST)
@@ -80,7 +117,7 @@ class signUpFamily(CreateView):
                 # DBにelder_codeが存在する場合登録が完了する
                 if form.is_valid() and Elder.objects.filter(elder_code=form.cleaned_data.get('elder_code')).exists():
                     user = form.save()
-                    return redirect('login')
+                    return redirect('user_login')
                 
                 # 存在しなければエラーを返す
                 else:
@@ -188,6 +225,33 @@ def add_schedule(request, date):
         'date': date,
         'existing_schedules': existing_schedules
     })
+  
+def elderHome(request):
+
+    if (request.method == 'POST'):
+        # データの処理
+        result = {'データを受け取りました'}
+        return JsonResponse(result)
+
+    today = datetime.today()
+    
+    elder_code = request.COOKIES.get('elder_code')
+    print(f"Received elder_code: {elder_code}")  # デバッグ用
+    if elder_code:
+        # elder_code に基づいてスケジュールをフィルタリング
+        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
+        try:
+            # elder_code に基づいて Elder インスタンスを取得
+            elder = Elder.objects.get(elder_code=elder_code)
+            print(f"elder:{elder}")
+        except Elder.DoesNotExist:
+            elder = None
+    else:
+        schedules = []
+        elder = None
+    print(f"Schedules: {schedules}")  # デバッグ用
+    print(f"elder:{elder}") # デバッグ用
+    return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
 
 # --- 行動順序を変更する関数
 def save_order(request):
@@ -216,3 +280,27 @@ def delete_schedule(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
+
+def update_schedule(request):
+    if request.method == 'POST':
+        try:
+            # JSON データをパース
+            data = json.loads(request.body)
+            index = data.get('index')
+            completion = data.get('completion')
+
+            # 該当するスケジュールを取得
+            schedule = Schedule.objects.all()[index]
+            schedule.completion = completion
+            schedule.save()
+
+            # 更新後のデータを返す
+            return JsonResponse({
+                'id': schedule.id,
+                'title': schedule.title,
+                'completion': schedule.completion,
+            })
+
+        except (Schedule.DoesNotExist, IndexError, KeyError):
+            return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
+    return JsonResponse({'error': 'Invalid method'}, status=405)    

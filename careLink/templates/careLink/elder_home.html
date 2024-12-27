@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予定確認</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .task-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px;
+            gap: 10px;
+            margin-top: 20px;
+            height: 400px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .task {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            padding: 15px 20px;
+            background-color: #ddd;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-sizing: border-box;
+        }
+        .task.selected {
+            background-color: #4CAF50;
+            color: white;
+            transform: scale(1.1);
+        }
+        .task p {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .status {
+            padding: 5px 10px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .status.completed {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .status.not-completed {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>予定確認</h1>
+
+    {% if elder %}
+        <div class="task-container" id="task-container">
+            {% for schedule in schedules %}
+            <div class="task" data-index="{{ forloop.counter0 }}">
+                <p>{{ schedule.title }}</p>
+                <div class="status {% if schedule.completion %}completed{% else %}not-completed{% endif %}" data-index="{{ forloop.counter0 }}">
+                    <span>{% if schedule.completion %}達成{% else %}未達成{% endif %}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="button-container">
+            <button id="scroll-up">↑ 上に移動</button>
+            <button id="scroll-down">↓ 下に移動</button>
+        </div>
+
+        <script>
+            const tasks = document.querySelectorAll('.task');
+            const statuses = document.querySelectorAll('.status');
+            const maxVisibleTasks = 5; // 表示するタスクの数
+            let startIndex = 0; // 表示開始インデックス
+            let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
+
+            // サーバーに達成状態を送信
+            function updateCompletion(index, newCompletion) {
+                fetch('/careLink/update_schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}', // Djangoの場合、CSRFトークンを送信
+                    },
+                    body: JSON.stringify({
+                        index: index,
+                        completion: newCompletion,
+                    }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload(); // ページを再読み込み
+                    } else {
+                        console.error('更新に失敗しました');
+                    }
+                })
+                .catch(error => console.error('エラー:', error));
+            }
+
+            // 達成状態をクリックで切り替え
+            statuses.forEach(status => {
+                status.addEventListener('click', () => {
+                    const index = parseInt(status.getAttribute('data-index'));
+                    const isCompleted = status.classList.contains('completed');
+                    updateCompletion(index, !isCompleted);
+                });
+            });
+
+            // 達成タスクの次のタスクを強調表示する
+            function findAndHighlightNextTask() {
+                let lastCompletedIndex = -1;
+
+                // 達成済みタスクの最後のインデックスを探す
+                tasks.forEach((task, index) => {
+                    const status = task.querySelector('.status');
+                    if (status && status.classList.contains('completed')) {
+                        lastCompletedIndex = index;
+                    }
+                });
+
+                // 達成済みタスクがない場合は最初のタスクを選択
+                if (lastCompletedIndex === -1) {
+                    selectedIndex = 0;
+                } else {
+                    // 達成済みタスクの次のタスクを選択
+                    const nextTaskIndex = lastCompletedIndex + 1;
+                    selectedIndex = nextTaskIndex < tasks.length ? nextTaskIndex : 0;
+                }
+            }
+
+            // タスクの表示を更新
+            function updateTaskDisplay() {
+                tasks.forEach((task, index) => {
+                    if (index >= startIndex && index < startIndex + maxVisibleTasks) {
+                        task.style.display = 'flex'; // 表示
+                        if (index === selectedIndex) {
+                            task.classList.add('selected'); // 強調表示
+                        } else {
+                            task.classList.remove('selected');
+                        }
+                    } else {
+                        task.style.display = 'none'; // 非表示
+                    }
+                });
+            }
+
+            // 上に移動
+            document.getElementById('scroll-up').addEventListener('click', () => {
+                if (startIndex > 0) {
+                    startIndex--;
+                    updateTaskDisplay();
+                }
+            });
+
+            // 下に移動
+            document.getElementById('scroll-down').addEventListener('click', () => {
+                if (startIndex + maxVisibleTasks < tasks.length) {
+                    startIndex++;
+                    updateTaskDisplay();
+                }
+            });
+
+            // 初期状態を設定
+            findAndHighlightNextTask();
+            updateTaskDisplay();
+        </script>
+    {% else %}
+        <p>予定はありません。</p>
+    {% endif %}
+
+</body>
+</html>
