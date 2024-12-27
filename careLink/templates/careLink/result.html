@@ -26,16 +26,20 @@
         </div>
     </nav>
 
-    <h1>ToDo確認</h1>
-    <form id="date-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-    </form>
+    <div class="container mt-5">
+        <h2 class="mb-4">ToDo確認</h2>
+        <form id="date-form" class="mb-4">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+        </form>
 
-    <h2>行動状況:</h2>
-    <ul id="schedule-list">
-        <!-- JSによって動的に表示（ajax） -->
-    </ul>
+        <h2 class="mb-3">行動状況:</h2>
+        <ul id="schedule-list" class="list-group">
+            <!-- JSによって動的に表示（ajax） -->
+        </ul>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -60,12 +64,12 @@
                         // データが存在する場合
                         if (data.length > 0) {
                             data.forEach(function(schedule) {
-                                $('#schedule-list').append('<li>' + schedule.title + ' - ' + schedule.completion + '</li>');
+                                $('#schedule-list').append('<li class="list-group-item">' + schedule.title + ' - ' + schedule.completion + '</li>');
                             });
                         
                         // データが存在しない場合
                         } else {
-                            $('#schedule-list').append('<li>データがありません。</li>');
+                            $('#schedule-list').append('<li class="list-group-item">データがありません。</li>');
                         }
                     }
                 });

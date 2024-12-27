@@ -9,8 +9,8 @@
             <thead>
                 <tr>
                     <th>タイトル</th>
+                    <th>時間</th>
                     <th>繰り返し</th>
-                    <th>状態</th>
                     <th></th>
                 </tr>
             </thead>
@@ -18,14 +18,16 @@
                 {% for schedule in existing_schedules %}
                     <tr data-id = '{{ schedule.id }}'>
                         <td>{{ schedule.title }}</td>
+                        <td>{{ schedule.time }}</td>
                         <td>{{ schedule.recurrence }}</td>
-                        <td>{{ schedule.status }}</td>
                         <td><button type="button" class="btn btn-danger delete-button" data-id="{{ schedule.id }}">削除</button></td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% endif %}
+
+
 
         <h2>新規追加 ({{ date }})</h2>
         <form method="post" class="mb-4">
@@ -39,10 +41,18 @@
                 {{ form.date|add_class:"form-control" }}
             </div>
             <div class="mb-3">
+                {{ form.time.label_tag }} 
+                {{ form.time|add_class:"form-control" }}
+            </div>
+            <div class="mb-3">
                 {{ form.recurrence.label_tag }} 
                 {{ form.recurrence|add_class:"form-control" }}
             </div>
-            <button type="submit" class="btn btn-primary">登録</button>
+            
+            <div class="p-3">
+                <button type="submit" class="btn btn-primary">登録</button>
+                <a class="btn btn-outline-secondary" href="{% url 'careLink:calendar' %}">戻る</a>            
+            </div>
         </form>
     </div>
 

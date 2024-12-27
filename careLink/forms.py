@@ -16,7 +16,7 @@ class UserRegistrationForm(UserCreationForm):
 class ScheduleForm(forms.ModelForm):
     class Meta:
         model = Schedule
-        fields = ['title', 'date', 'recurrence']  # 仮フィールド
+        fields = ['title', 'date', 'time', 'recurrence']  # 仮フィールド
 
 # --- 日付入力フォーム
 class DateInputForm(forms.Form):

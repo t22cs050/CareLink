@@ -38,8 +38,9 @@ class Schedule(models.Model):
         ('monthly', '月ごと'),
     ]
 
-    title = models.CharField(max_length=100, default='') # 行動名
+    title = models.CharField(max_length=100, default='', blank=True) # 行動名
     date = models.DateField() # 日付
+    time = models.TimeField(blank=True, null=True) # 時刻
     recurrence = models.CharField(max_length=10, choices=RECURRING_CHOICES, default='none') # 繰り返し設定
     completion = models.BooleanField(default=False) # 状態（T/F）
     sequence = models.IntegerField(default=1) # 行動順序
