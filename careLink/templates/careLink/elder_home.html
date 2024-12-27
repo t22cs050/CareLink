@@ -9,34 +9,76 @@
             font-family: Arial, sans-serif;
             background-color: #f4f7fc;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         h1 {
             color: #333;
             text-align: center;
         }
-        h2 {
-            color: #555;
-        }
-        form {
+        .task-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px;
+            gap: 10px;
+            margin-top: 20px;
+            height: 400px;
+            overflow: hidden;
+            box-sizing: border-box;
         }
-        label {
+        .task {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            padding: 15px 20px;
+            background-color: #ddd;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-sizing: border-box;
+        }
+        .task.selected {
+            background-color: #4CAF50;
+            color: white;
+            transform: scale(1.1);
+        }
+        .task p {
+            margin: 0;
             font-size: 1.1em;
-            margin-bottom: 8px;
         }
-        input[type="text"] {
-            padding: 8px;
+        .status {
+            padding: 5px 10px;
             font-size: 1em;
-            margin-bottom: 10px;
-            width: 200px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
         }
-        button {
+        .status.completed {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .status.not-completed {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-container button {
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -45,180 +87,132 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        button:hover {
+        .button-container button:hover {
             background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        p {
-            text-align: center;
-            font-size: 1.2em;
-            color: #333;
         }
     </style>
 </head>
 <body>
 
-    <h1>高齢者側ホーム（仮）</h1>
+    <h1>予定確認</h1>
 
     {% if elder %}
-        <h2>コード{{ elder_code }} さんの予定</h2>
-        
-        {% if schedules %}
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>日付</th>
-                        <th>予定名</th>
-                        <th>達成</th>
-                        <th>説明</th>
-                    </tr>
-                </thead>
-                <tbody id="schedule-list">
-                    {% for schedule in schedules %}
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>{{ schedule.date }}</td>
-                        <td>{{ schedule.title }}</td>
-                        <td>{{ schedule.completion|yesno:"達成,未達成" }}</td>
-                        <td>{{ schedule.description }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <script>
-                    const scheduleList = document.getElementById('schedule-list');
-                    const items = scheduleList.getElementsByTagName('tr');
-                    const nomalHeight = items[0].style.height;
-                    const rowsPerPage = 5; // 1ページに表示する行数
-                    let currentRows = 0; // 現在選択している行
-                    
-                    // 引数rowからrowsPerPage分だけitemsを表示
-                    function displayPage(row) {
-                        clearList();
+        <div class="task-container" id="task-container">
+            {% for schedule in schedules %}
+            <div class="task" data-index="{{ forloop.counter0 }}">
+                <p>{{ schedule.title }}</p>
+                <div class="status {% if schedule.completion %}completed{% else %}not-completed{% endif %}" data-index="{{ forloop.counter0 }}">
+                    <span>{% if schedule.completion %}達成{% else %}未達成{% endif %}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
-                        let startRow = row - Math.floor(rowsPerPage / 2);
-                        if (startRow < 0){startRow = 0;}
-                        else if (startRow > items.length - rowsPerPage){
-                            startRow = items.length - rowsPerPage;
-                        }
+        <div class="button-container">
+            <button id="scroll-up">↑ 上に移動</button>
+            <button id="scroll-down">↓ 下に移動</button>
+        </div>
 
-                        for (let i = startRow; i < items.length && i < startRow+rowsPerPage; i++) {
-                            items[i].style.display = 'table-row';
-                            // 初めの行だけ高さを変更
-                            if (i === row) {
-                                items[i].style.height = '100px'; // 任意の高さに設定
-                                items[i].style.backgroundColor = '#90ee90'; // 緑色
-                                showCheckBox(i);
-                            }
-                            else{
-                                items[i].style.height = nomalHeight; // 任意の高さに設定
-                                items[i].style.backgroundColor = '#cccccc'; // 灰色
-                                hideCheckBox(i);
-                            }
-                        }
-                    }
-                    // 表示範囲外の要素を非表示にする
-                    function clearList(){
-                        for (let i = 0; i < items.length; i++) {
-                            items[i].style.display = 'none';
-                        }
-                    }
+        <script>
+            const tasks = document.querySelectorAll('.task');
+            const statuses = document.querySelectorAll('.status');
+            const maxVisibleTasks = 5; // 表示するタスクの数
+            let startIndex = 0; // 表示開始インデックス
+            let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
 
-                    function getCookie(name) {
-                        const value = `; ${document.cookie}`;
-                        const parts = value.split(`; ${name}=`);
-                        if (parts.length === 2) return parts.pop().split(';').shift();
+            // サーバーに達成状態を送信
+            function updateCompletion(index, newCompletion) {
+                fetch('/careLink/update_schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}', // Djangoの場合、CSRFトークンを送信
+                    },
+                    body: JSON.stringify({
+                        index: index,
+                        completion: newCompletion,
+                    }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload(); // ページを再読み込み
+                    } else {
+                        console.error('更新に失敗しました');
                     }
+                })
+                .catch(error => console.error('エラー:', error));
+            }
 
-                    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                    checkboxes.forEach(checkbox => {
-                        checkbox.addEventListener('change', () => {
-                            if (event.target.checked) {
-                                console.log('チェックボックスがオンになりました');
-                                // チェックボックスがオンになったときの処理
-                                fetch('home', {
-                                    method: 'POST',
-                                    body: 'data',
-                                    headers: {                         
-                                        'X-CSRFToken': getCookie('csrftoken') // CSRFトークンを設定                                    
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok');
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    console.log(data);
-                                    // サーバーからのレスポンスを処理
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                });
-                            } else {
-                                console.log('チェックボックスがオフになりました');
-                                // チェックボックスがオフになったときの処理
-                            }
-                        });
-                    });
+            // 達成状態をクリックで切り替え
+            statuses.forEach(status => {
+                status.addEventListener('click', () => {
+                    const index = parseInt(status.getAttribute('data-index'));
+                    const isCompleted = status.classList.contains('completed');
+                    updateCompletion(index, !isCompleted);
+                });
+            });
 
-                    function hideCheckBox(i){
-                        checkboxes[i].style.display = 'none';
-                    }
-                    function showCheckBox(i){
-                        checkboxes[i].style.display = 'table-row';
-                    }
-                    
-                    // 初期表示時は上から0行目から表示
-                    displayPage(0);
-                </script>
-            </table>
-            <button id="scroll-up">↑</button>
-            <button id="scroll-down">↓</button>
-            <script>
-                // 上矢印ボタンクリック時の処理
-                const scrollUpButton = document.getElementById('scroll-up');
-                scrollUpButton.addEventListener('click', () => {
-                    console.log("上ボタンクリックされました");
-                    if (currentRows > 0) {
-                        currentRows--;
-                        displayPage(currentRows);
+            // 達成タスクの次のタスクを強調表示する
+            function findAndHighlightNextTask() {
+                let lastCompletedIndex = -1;
+
+                // 達成済みタスクの最後のインデックスを探す
+                tasks.forEach((task, index) => {
+                    const status = task.querySelector('.status');
+                    if (status && status.classList.contains('completed')) {
+                        lastCompletedIndex = index;
                     }
                 });
-                
-                // 下矢印ボタンクリック時の処理
-                const scrollDownButton = document.getElementById('scroll-down');
-                scrollDownButton.addEventListener('click', () => {
-                    console.log("下ボタンクリックされました");
-                    if (currentRows < items.length-1) {
-                        currentRows++;
-                        displayPage(currentRows);
+
+                // 達成済みタスクがない場合は最初のタスクを選択
+                if (lastCompletedIndex === -1) {
+                    selectedIndex = 0;
+                } else {
+                    // 達成済みタスクの次のタスクを選択
+                    const nextTaskIndex = lastCompletedIndex + 1;
+                    selectedIndex = nextTaskIndex < tasks.length ? nextTaskIndex : 0;
+                }
+            }
+
+            // タスクの表示を更新
+            function updateTaskDisplay() {
+                tasks.forEach((task, index) => {
+                    if (index >= startIndex && index < startIndex + maxVisibleTasks) {
+                        task.style.display = 'flex'; // 表示
+                        if (index === selectedIndex) {
+                            task.classList.add('selected'); // 強調表示
+                        } else {
+                            task.classList.remove('selected');
+                        }
+                    } else {
+                        task.style.display = 'none'; // 非表示
                     }
                 });
-            </script>
-        {% else %}
-            <p>予定はありません。</p>
-        {% endif %}
-    {% elif elder_code %}
-        <p>指定されたコードに該当するユーザーが見つかりませんでした。</p>
+            }
+
+            // 上に移動
+            document.getElementById('scroll-up').addEventListener('click', () => {
+                if (startIndex > 0) {
+                    startIndex--;
+                    updateTaskDisplay();
+                }
+            });
+
+            // 下に移動
+            document.getElementById('scroll-down').addEventListener('click', () => {
+                if (startIndex + maxVisibleTasks < tasks.length) {
+                    startIndex++;
+                    updateTaskDisplay();
+                }
+            });
+
+            // 初期状態を設定
+            findAndHighlightNextTask();
+            updateTaskDisplay();
+        </script>
+    {% else %}
+        <p>予定はありません。</p>
     {% endif %}
+
 </body>
 </html>
-

@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db import transaction
+import json
 
 from .models import Elder, Schedule
 from .forms import ScheduleForm             # 行動登録に用いるフォーム
@@ -238,11 +239,13 @@ def elderHome(request):
         result = {'データを受け取りました'}
         return JsonResponse(result)
 
+    today = datetime.today()
+    
     elder_code = request.COOKIES.get('elder_code')
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
         # elder_code に基づいてスケジュールをフィルタリング
-        schedules = Schedule.objects.filter(silver_code=elder_code).order_by('date')
+        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
@@ -256,3 +259,26 @@ def elderHome(request):
     print(f"elder:{elder}") # デバッグ用
     return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
 
+def update_schedule(request):
+    if request.method == 'POST':
+        try:
+            # JSON データをパース
+            data = json.loads(request.body)
+            index = data.get('index')
+            completion = data.get('completion')
+
+            # 該当するスケジュールを取得
+            schedule = Schedule.objects.all()[index]
+            schedule.completion = completion
+            schedule.save()
+
+            # 更新後のデータを返す
+            return JsonResponse({
+                'id': schedule.id,
+                'title': schedule.title,
+                'completion': schedule.completion,
+            })
+
+        except (Schedule.DoesNotExist, IndexError, KeyError):
+            return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
+    return JsonResponse({'error': 'Invalid method'}, status=405)
