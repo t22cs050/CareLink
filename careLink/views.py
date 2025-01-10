@@ -107,13 +107,13 @@ def change_elder_name(request):
 
     if request.method == 'POST':
         code = request.COOKIES.get('elder_code')
-        print("code:",code)
+        # print("code:",code)
         elder = get_object_or_404(Elder, elder_code=code)
         new_name = request.POST.get('elder_name', '').strip()
-        print("入力した名前:",new_name)
-        print("elder : ", elder)
+        # print("入力した名前:",new_name)
+        # print("elder : ", elder)
         if new_name and len(new_name) <= 10:
-            print("条件達成")
+            # print("条件達成")
             elder.elder_name = new_name
             elder.save()
             return redirect('/careLink/login')  # ホーム画面にリダイレクト
