@@ -94,7 +94,7 @@
 </head>
 <body>
 
-    <h1>コード{{ elder.elder_code }}さん  今日の予定</h1>
+    <h1>{{ elder.elder_name }}さん  今日の予定</h1>
 
     {% if elder %}
         <div class="task-container" id="task-container">
@@ -213,6 +213,10 @@
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
-
+    <ul>
+        <li>
+            <a href="{%url 'careLink:change_name'%}">名前を変更</a>
+        </li>
+    </ul>
 </body>
 </html>

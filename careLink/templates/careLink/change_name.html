@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>名前の変更</title>
+</head>
+<body>
+    <h1>名前の変更</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="elder_name">新しい名前:</label>
+        <input type="text" id="elder_name" name="elder_name" value="{{ elder.elder_name }}" maxlength="10" required>
+        <button type="submit">変更</button>
+    </form>
+    <a href="{% url 'careLink:user_login' %}">ホームに戻る</a>
+</body>
+</html>
