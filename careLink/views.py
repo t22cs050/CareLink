@@ -98,8 +98,13 @@ class signUpElder(CreateView):
 
         # Cookie に elder_id と elder_code を保存
         response = super().form_valid(form)
-        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
-        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+        # 一年間保存
+        response.set_cookie('elder_id',
+                            form.instance.elder_id,
+                            max_age=60*60*24*360)
+        response.set_cookie('elder_code',
+                            form.instance.elder_code,
+                            max_age=60*60*24*360)
 
         return response
 
@@ -229,6 +234,7 @@ def add_schedule(request, date):
         'existing_schedules': existing_schedules
     })
 
+
 def elderHome(request):
 
     if (request.method == 'POST'):
@@ -238,6 +244,7 @@ def elderHome(request):
 
     today = datetime.today()
     
+    elder_id = request.COOKIES.get('elder_id')
     elder_code = request.COOKIES.get('elder_code')
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
@@ -254,7 +261,13 @@ def elderHome(request):
         elder = None
     print(f"Schedules: {schedules}")  # デバッグ用
     print(f"elder:{elder}") # デバッグ用
-    return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
+    return render(request,
+                  'careLink/elder_home.html',
+                  {'schedules': schedules,
+                   'elder': elder,
+                   'elder_id': elder_id,
+                   'elder_code': elder_code})
+
 
 # --- 行動順序を変更する関数
 def save_order(request):

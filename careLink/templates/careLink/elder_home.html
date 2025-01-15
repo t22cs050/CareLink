@@ -90,11 +90,24 @@
         .button-container button:hover {
             background-color: #45a049;
         }
+        .navigation-container {
+            display: flex; /* flexbox を使用して横並びにする */
+            bottom: 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 自動で列を生成 */
+            grid-gap: 10px; /* アイテム間の隙間 */
+        }
+        .navigation-item {
+            padding: 10px; /* 内側の余白 */
+            border-radius: 5px; /* 角を丸くする */
+            background-color:rgb(154, 160, 69);
+            color: black;
+            margin: 5px; /* 項目間の余白 */
+        }
     </style>
 </head>
 <body>
-
-    <h1>コード{{ elder.elder_code }}さん  今日の予定</h1>
+    <a>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</a>
+    <h1>今日の予定</h1>
 
     {% if elder %}
         <div class="task-container" id="task-container">
@@ -213,6 +226,10 @@
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
+    <div class="navigation-container">
+        <p class = "navigation-item">体重、身長を入力</p>
+        <p class = "navigation-item">ログアウト</p>
+    </div>
 
 </body>
 </html>
