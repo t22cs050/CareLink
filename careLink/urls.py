@@ -16,5 +16,6 @@ urlpatterns = [
     path('save_order/', views.save_order, name='save_order'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('get_schedules/', get_schedules, name='get_schedules'),
-    path('update_schedule', views.update_schedule, name='update_schedule')
+    path('update_schedule/', views.update_schedule, name='update_schedule'),
+    path('change_elder_name/',views.change_elder_name,name='change_name'),
 ]

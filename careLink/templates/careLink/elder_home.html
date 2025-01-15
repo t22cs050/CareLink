@@ -90,18 +90,23 @@
         .button-container button:hover {
             background-color: #45a049;
         }
-        .navigation-container {
-            display: flex; /* flexbox を使用して横並びにする */
-            bottom: 0;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 自動で列を生成 */
-            grid-gap: 10px; /* アイテム間の隙間 */
+        /* change_name リンクのスタイル */
+        .link-container {
+            margin-top: 20px;
+            text-align: center;
         }
-        .navigation-item {
-            padding: 10px; /* 内側の余白 */
-            border-radius: 5px; /* 角を丸くする */
-            background-color:rgb(154, 160, 69);
-            color: black;
-            margin: 5px; /* 項目間の余白 */
+        .link-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1em;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .link-container a:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -135,7 +140,7 @@
 
             // サーバーに達成状態を送信
             function updateCompletion(index, newCompletion) {
-                fetch('/careLink/update_schedule', {
+                fetch('/careLink/update_schedule/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -230,6 +235,12 @@
         <p class = "navigation-item">体重、身長を入力</p>
         <p class = "navigation-item">ログアウト</p>
     </div>
+
+    <div class="link-container">
+        <a href="{% url 'careLink:change_name' %}">名前を変更</a>
+    </div>
+
+    <h2>個人識別コード：{{elder.elder_code}}</h2>
 
 </body>
 </html>

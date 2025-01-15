@@ -108,6 +108,25 @@ class signUpElder(CreateView):
 
         return response
 
+def change_elder_name(request):
+
+    if request.method == 'POST':
+        code = request.COOKIES.get('elder_code')
+        # print("code:",code)
+        elder = get_object_or_404(Elder, elder_code=code)
+        new_name = request.POST.get('elder_name', '').strip()
+        # print("入力した名前:",new_name)
+        # print("elder : ", elder)
+        if new_name and len(new_name) <= 10:
+            # print("条件達成")
+            elder.elder_name = new_name
+            elder.save()
+            return redirect('/careLink/login')  # ホーム画面にリダイレクト
+        else:
+            return HttpResponse("名前は必須で10文字以内です。", status=400)
+
+    return render(request, 'careLink/change_name.html')
+    
 
 # --- 家族側sginup画面
 class signUpFamily(CreateView):
