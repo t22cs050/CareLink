@@ -32,6 +32,16 @@
         <h2>新規追加 ({{ date }})</h2>
         <form method="post" class="mb-4" enctype="multipart/form-data">
             {% csrf_token %}
+            {% comment %} effect画像を１日につき一つまでしか登録出来ないようにするとき {% endcomment %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %} 
+
+
             <div class="mb-3">
                 {{ form.title.label_tag }} 
                 {{ form.title|add_class:"form-control" }}
@@ -51,6 +61,7 @@
             <div class="mb-3">
                 {{ form.image.label_tag }}  <!-- 画像フィールドの追加 -->
                 {{ form.image|add_class:"form-control" }}
+                <p>＊日付につき一つまでしか画像は登録できません</p>
             </div>
             
             <div class="p-3">

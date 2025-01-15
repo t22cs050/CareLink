@@ -340,6 +340,8 @@ class AllCompleteEffect(TemplateView):
         else:
             images = []  # elder_code がない場合は空のリスト
             
-        print("画像一覧:", images)  # デバッグ用
-
-        return render(request,"careLink/all_complete_effect.html",{"images":images,"MEDIA_URL": settings.MEDIA_URL,})
+        for img in images:
+            if img!="":
+                image=img
+        
+        return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})

@@ -86,12 +86,18 @@
 
 {% block content %}
 <div class="text">タスク全達成！！</div>
-{% for image in images %}
-    <img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
-{% endfor %}
+
+<img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
+
 <div class="sparkles" id="sparkles"></div>
 <br>
-<a href="{% url 'careLink:elder_home' %}?skip_redirect=true">戻る</a>
+
+<!-- 戻るボタン -->
+<div class="p-4 text-center">
+    <a href="{% url 'careLink:elder_home' %}?skip_redirect=true" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-lg" style="font-size: 1.5rem; border-radius: 10px;">
+         戻る
+    </a>
+</div>
 
 <script>
     // DOMContentLoaded イベントを使って DOM が完全に読み込まれた後に実行
@@ -115,3 +121,4 @@
     });
 </script>
 {% endblock content %}
+
