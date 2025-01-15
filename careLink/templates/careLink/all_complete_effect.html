@@ -1,0 +1,117 @@
+{% extends "careLink/base.html" %}
+
+{% block style %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb, #ffecd2, #fcb69f);
+        background-size: 200% 200%;
+        animation: gradientAnimation 5s ease infinite;
+        overflow: hidden;
+        flex-direction: column;
+    }
+
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 0%; }
+        25% { background-position: 50% 50%; }
+        50% { background-position: 100% 100%; }
+        75% { background-position: 50% 50%; }
+        100% { background-position: 0% 0%; }
+    }
+
+    .text {
+        font-family: 'Arial', sans-serif;
+        font-size: 4rem;
+        font-weight: bold;
+        color: #ffcc00;
+        text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
+                     0 0 30px rgba(255, 204, 0, 0.8),
+                     0 0 40px rgba(255, 204, 0, 0.6),
+                     0 0 50px rgba(255, 204, 0, 0.4);
+        position: relative;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .photo {
+        width: 80%; /* 画面幅の 80% を占めるように設定 */
+        height: auto;
+        border: 8px solid rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.5);
+        margin-bottom: 20px;
+    }
+
+    .sparkles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .sparkle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        animation: sparkleAnimation 2.5s linear infinite;
+    }
+
+    @keyframes sparkleAnimation {
+        0% {
+            transform: scale(0);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.5);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(0);
+            opacity: 0;
+        }
+    }
+</style>
+{% endblock style %}
+
+{% block content %}
+<div class="text">タスク全達成！！</div>
+{% for image in images %}
+    <img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
+{% endfor %}
+<div class="sparkles" id="sparkles"></div>
+<br>
+<a href="{% url 'careLink:elder_home' %}?skip_redirect=true">戻る</a>
+
+<script>
+    // DOMContentLoaded イベントを使って DOM が完全に読み込まれた後に実行
+    document.addEventListener('DOMContentLoaded', function () {
+        const sparklesContainer = document.getElementById('sparkles');
+        const sparkleCount = 100; // キラキラの数を増加
+
+        if (sparklesContainer) {
+            for (let i = 0; i < sparkleCount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.classList.add('sparkle');
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                sparkle.style.animationDuration = `${1 + Math.random() * 2}s`;
+                sparklesContainer.appendChild(sparkle);
+            }
+        } else {
+            console.warn('Sparkles container not found. Check if the element with ID "sparkles" exists.');
+        }
+    });
+</script>
+{% endblock content %}

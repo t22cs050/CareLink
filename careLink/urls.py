@@ -3,6 +3,7 @@ from .views import signUpElder, signUpFamily, MonthCalendar, add_schedule
 from . import views
 from .views import get_schedules
 
+
 app_name = 'careLink'
 urlpatterns = [
     path('login', views.user_login, name="user_login"),
@@ -16,5 +17,6 @@ urlpatterns = [
     path('save_order/', views.save_order, name='save_order'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('get_schedules/', get_schedules, name='get_schedules'),
-    path('update_schedule', views.update_schedule, name='update_schedule')
+    path('update_schedule', views.update_schedule, name='update_schedule'),
+    path('elder/effect',views.AllCompleteEffect.as_view(),name='all_complete_effect'),
 ]

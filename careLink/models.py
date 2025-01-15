@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .randomGenerate import generate_unique_integer
+from pathlib import Path
 
 
 class Elder(models.Model):
@@ -47,6 +48,20 @@ class Schedule(models.Model):
     completion = models.BooleanField(default=False) # 状態（T/F）
     sequence = models.IntegerField(default=1) # 行動順序
     silver_code = models.CharField(max_length=100, default='')  # 高齢者コード
+    image = models.ImageField(upload_to='schedule_images/', blank=True, null=True)  # 画像フィールド
+    
+    
+    
 
     def __str__(self):
         return self.title
+    
+    # 画像消すためのオーバーライド
+    def delete(self,*args,**kwargs):
+        image=self.image
+        super().delete(*args,**kwargs)
+        if image:
+            Path(image.path).unlink(missing_ok=True)
+            
+        
+

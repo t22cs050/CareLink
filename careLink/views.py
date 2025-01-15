@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login
 from django.db import transaction
 from django.db.models import Max
 from django.template.loader import render_to_string
+from django.conf import settings
 
 from .models import Elder, Schedule
 from .forms import ScheduleForm            # 行動登録に用いるフォーム
@@ -177,9 +178,11 @@ def add_schedule(request, date):
     existing_schedules = Schedule.objects.filter(date=date).order_by('sequence')  # その日のスケジュールを取得
     elder_code = request.user.elder_code # ログインしているユーザの情報を取得
     if request.method == 'POST':
-        form = ScheduleForm(request.POST)
+        
+        form = ScheduleForm(request.POST,request.FILES)
         if form.is_valid():
             schedule = form.save(commit=False)
+            print("画像ファイル:", schedule.image)  # デバッグ用
             max_sequence = Schedule.objects.filter(date=date).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
             print(max_sequence)     
             
@@ -239,10 +242,24 @@ def elderHome(request):
     today = datetime.today()
     
     elder_code = request.COOKIES.get('elder_code')
+    skip_redirect = request.session.get('skip_redirect')
+    
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
         # elder_code に基づいてスケジュールをフィルタリング
         schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
+        comleted_count=0
+        for i in range(len(schedules)):
+            if schedules[i].completion:
+                comleted_count+=1
+        
+        if comleted_count!=0 and comleted_count==len(schedules) and not skip_redirect:
+            request.session['skip_redirect'] = True 
+            return redirect("careLink:all_complete_effect")
+        else:
+            request.session['skip_redirect'] = False  
+            
+            
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
@@ -254,6 +271,7 @@ def elderHome(request):
         elder = None
     print(f"Schedules: {schedules}")  # デバッグ用
     print(f"elder:{elder}") # デバッグ用
+      
     return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
 
 # --- 行動順序を変更する関数
@@ -306,4 +324,22 @@ def update_schedule(request):
 
         except (Schedule.DoesNotExist, IndexError, KeyError):
             return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
-    return JsonResponse({'error': 'Invalid method'}, status=405)    
+    return JsonResponse({'error': 'Invalid method'}, status=405)   
+
+class AllCompleteEffect(TemplateView):
+    def get(self,request):
+         # 今日の日付を取得
+        today = datetime.today()
+        # クッキーから elder_code を取得
+        elder_code = request.COOKIES.get('elder_code')
+        
+        # elder_code に基づいてスケジュールを取得
+        if elder_code:
+            schedules = Schedule.objects.filter(silver_code=elder_code, date=today)
+            images = schedules.filter(image__isnull=False).values_list('image', flat=True)
+        else:
+            images = []  # elder_code がない場合は空のリスト
+            
+        print("画像一覧:", images)  # デバッグ用
+
+        return render(request,"careLink/all_complete_effect.html",{"images":images,"MEDIA_URL": settings.MEDIA_URL,})
