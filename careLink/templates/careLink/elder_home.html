@@ -111,8 +111,8 @@
     </style>
 </head>
 <body>
-    <a>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</a>
-    <h1>今日の予定</h1>
+    <h3>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</h3>
+    <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
         <div class="task-container" id="task-container">
@@ -134,7 +134,7 @@
         <script>
             const tasks = document.querySelectorAll('.task');
             const statuses = document.querySelectorAll('.status');
-            const maxVisibleTasks = 5; // 表示するタスクの数
+            const maxVisibleTasks = 4; // 表示するタスクの数
             let startIndex = 0; // 表示開始インデックス
             let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
 
@@ -231,16 +231,11 @@
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
-    <div class="navigation-container">
-        <p class = "navigation-item">体重、身長を入力</p>
-        <p class = "navigation-item">ログアウト</p>
-    </div>
-
     <div class="link-container">
+        <a >身体情報を入力</a>
+        <a href="{% url 'careLink:elder_logout' %}">ログアウト</a>
         <a href="{% url 'careLink:change_name' %}">名前を変更</a>
     </div>
-
-    <h2>個人識別コード：{{elder.elder_code}}</h2>
 
 </body>
 </html>

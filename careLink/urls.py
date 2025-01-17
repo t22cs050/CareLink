@@ -17,5 +17,6 @@ urlpatterns = [
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('get_schedules/', get_schedules, name='get_schedules'),
     path('update_schedule/', views.update_schedule, name='update_schedule'),
-    path('change_elder_name/',views.change_elder_name,name='change_name'),
+    path('elder/logout/', views.elder_logout, name='elder_logout'),
+    path('change_elder_name/', views.change_elder_name, name='change_name'),
 ]
