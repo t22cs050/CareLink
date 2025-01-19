@@ -9,10 +9,10 @@ from django.db.models import Max
 from django.template.loader import render_to_string
 from django.conf import settings
 
-from .models import Elder, Schedule
+from .models import Elder, Schedule,FamilyUser
 from .forms import ScheduleForm            # 行動登録に用いるフォーム
 from .forms import UserRegistrationForm    # ユーザ登録に用いるフォーム 
-from .forms import DateInputForm
+from .forms import DateInputForm,ImageUploadForm
 from . import mixins # カレンダー関連のクラスを定義したやつ
 
 from datetime import timedelta, date, datetime, timezone
@@ -175,62 +175,82 @@ class MonthCalendar(mixins.MonthCalendarMixin, TemplateView):
 
 # --- 行動登録画面
 def add_schedule(request, date):
-    existing_schedules = Schedule.objects.filter(date=date).order_by('sequence')  # その日のスケジュールを取得
     elder_code = request.user.elder_code # ログインしているユーザの情報を取得
+    existing_schedules = Schedule.objects.filter(date=date, silver_code=elder_code).order_by('sequence')  # その日のスケジュールを取得
+    image_form = ImageUploadForm()
+    form = ScheduleForm(initial={'date': date}) # 日付を初期値として設定
     if request.method == 'POST':
-        
         form = ScheduleForm(request.POST,request.FILES)
-        if form.is_valid():
-            schedule = form.save(commit=False)
-            print("画像ファイル:", schedule.image)  # デバッグ用
-            max_sequence = Schedule.objects.filter(date=date).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
-            print(max_sequence)     
-            
-            try:
-                with transaction.atomic():
-                    if schedule.recurrence != 'none':
-                        # --- 繰り返しスケジュール生成
-                        schedules_to_create = []
-                        for i in range(12):  # 12回の繰り返す（要検討）
-                            if schedule.recurrence == 'daily':
-                                new_date = schedule.date + timedelta(days=i)
-                            elif schedule.recurrence == 'weekly':
-                                new_date = schedule.date + timedelta(weeks=i)
-                            elif schedule.recurrence == 'monthly':
-                                new_date = schedule.date + relativedelta(months=i)
-                            
-                            schedules_to_create.append(Schedule(
-                                title=schedule.title,
-                                date=new_date,
-                                sequence = (max_sequence or 0) + 1,
-                                recurrence=schedule.recurrence,
-                                completion=False,
-                                silver_code = elder_code,
-                            ))
-                        
-                        Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
-                    else:
-                        schedule.sequence = (max_sequence or 0) + 1
-                        schedule.silver_code = elder_code
-                        schedule.save()
+        # --- スケジュールの変更がpostされた場合
+        if 'schedule_submit' in request.POST:
+            if form.is_valid():
+                schedule = form.save(commit=False)
+                max_sequence = Schedule.objects.filter(date=date, silver_code=elder_code).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
+                print(max_sequence)     
                 
-                messages.success(request, 'スケジュールを正常に登録しました。')
-                render(request, 'careLink/add_schedule.html', {
-                    'form': form, 
-                    'date': date,
-                    'existing_schedules': existing_schedules
-                    })
-            
-            except Exception as e:
-                messages.error(request, f'エラーが発生しました: {str(e)}')    
-    else:
-        form = ScheduleForm(initial={'date': date}) # 日付を初期値として設定
-    
+                try:
+                    with transaction.atomic():
+                        if schedule.recurrence != 'none':
+                            # --- 繰り返しスケジュール生成
+                            schedules_to_create = []
+                            for i in range(12):  # 12回の繰り返す（要検討）
+                                if schedule.recurrence == 'daily':
+                                    new_date = schedule.date + timedelta(days=i)
+                                elif schedule.recurrence == 'weekly':
+                                    new_date = schedule.date + timedelta(weeks=i)
+                                elif schedule.recurrence == 'monthly':
+                                    new_date = schedule.date + relativedelta(months=i)
+                                
+                                schedules_to_create.append(Schedule(
+                                    title=schedule.title,
+                                    date=new_date,
+                                    sequence = (max_sequence or 0) + 1,
+                                    recurrence=schedule.recurrence,
+                                    completion=False,
+                                    silver_code = elder_code,
+                                ))
+                            
+                            Schedule.objects.bulk_create(schedules_to_create) # バルクインサート
+                        else:
+                            schedule.sequence = (max_sequence or 0) + 1
+                            schedule.silver_code = elder_code
+                            schedule.save()
+                    
+                    messages.success(request, 'スケジュールを正常に登録しました。')
+                    render(request, 'careLink/add_schedule.html', {
+                        'form': form, 
+                        'date': date,
+                        'existing_schedules': existing_schedules
+                        })
+                
+                except Exception as e:
+                    messages.error(request, f'エラーが発生しました: {str(e)}')
+        
+        # --- 画像がpostされた場合
+        elif 'image_submit' in request.POST:
+            user = FamilyUser.objects.get(id=request.user.id)
+            image_form = ImageUploadForm(request.POST, request.FILES, instance=user)
+            if image_form.is_valid():
+                image_form.save()
+                messages.success(request, '画像がアップロードされました。')
+        
     return render(request, 'careLink/add_schedule.html', {
         'form': form, 
         'date': date,
-        'existing_schedules': existing_schedules
+        'existing_schedules': existing_schedules,
+        'image_form': image_form,
     })
+
+# --- 登録した画像の削除
+def delete_image(request):
+    if request.user.image:
+        request.user.image.delete()  # ファイルを削除
+        request.user.image = None    # フィールドをクリア
+        request.user.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
 
 def elderHome(request):
 
@@ -328,20 +348,15 @@ def update_schedule(request):
 
 class AllCompleteEffect(TemplateView):
     def get(self,request):
-         # 今日の日付を取得
-        today = datetime.today()
+        
         # クッキーから elder_code を取得
         elder_code = request.COOKIES.get('elder_code')
         
         # elder_code に基づいてスケジュールを取得
         if elder_code:
-            schedules = Schedule.objects.filter(silver_code=elder_code, date=today)
-            images = schedules.filter(image__isnull=False).values_list('image', flat=True)
+            image=FamilyUser.objects.get(elder_code=elder_code).image
         else:
-            images = []  # elder_code がない場合は空のリスト
+            image = []  # elder_code がない場合は空のリスト
             
-        for img in images:
-            if img!="":
-                image=img
         
         return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})
