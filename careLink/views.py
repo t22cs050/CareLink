@@ -245,6 +245,7 @@ def add_schedule(request, date):
         'image_form': image_form,
     })
 
+# --- 登録した画像の削除
 def delete_image(request):
     if request.user.image:
         request.user.image.delete()  # ファイルを削除
@@ -316,6 +317,7 @@ def delete_schedule(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
 
+# --- 達成/未達成の更新
 def update_schedule(request):
     if request.method == 'POST':
         try:
@@ -327,11 +329,17 @@ def update_schedule(request):
             today = datetime.today()
             elder_code = request.COOKIES.get('elder_code')
 
-            # 該当するスケジュールを取得
+            # 該当するスケジュールを取得して保存
             schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
             schedule.completion = completion
             schedule.save()
 
+            # すべてのスケジュールが達成された場合はエフェクトを表示
+            new_schedule = Schedule.objects.filter(silver_code=elder_code, date=today)
+            if all(schedule.completion for schedule in new_schedule):
+                print("return effect!")
+                return redirect("/careLink/elder/effect")
+            
             # 更新後のデータを返す
             return JsonResponse({
                 'id': schedule.id,
@@ -343,21 +351,18 @@ def update_schedule(request):
             return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
     return JsonResponse({'error': 'Invalid method'}, status=405)   
 
+# --- エフェクトの表示
 class AllCompleteEffect(TemplateView):
-    print("EFFECT")
     def get(self,request):
-        today = datetime.today() # 今日の日付を取得
+
+        print("get! effection!")
         elder_code = request.COOKIES.get('elder_code') # elder_codeを取得
         
         # elder_code に基づいてスケジュールを取得
         if elder_code:
-            schedules = FamilyUser.objects.filter(elder_code=elder_code, date=today)
-            images = schedules.filter(image__isnull=False).values_list('image', flat=True)
+            image = FamilyUser.objects.get(elder_code=elder_code).image
         else:
-            images = []  # elder_code がない場合は空のリスト
-            
-        for img in images:
-            if img!="":
-                image=img
+            image = []  # elder_code がない場合は空のリスト
         
+        # なぜが画面遷移しない
         return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})
