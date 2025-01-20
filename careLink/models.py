@@ -28,8 +28,6 @@ class Elder(models.Model):
 
 class FamilyUser(AbstractUser):
     elder_code = models.IntegerField(default='0000') # 4桁の整数
-
-
     REQUIRED_FIELDS = ['elder_code', ]
     image = models.ImageField(upload_to='schedule_images/', blank=True, null=True)  # 画像フィールド
 
@@ -53,16 +51,12 @@ class Schedule(models.Model):
     date = models.DateField() # 日付
     time = models.TimeField(blank=True, null=True) # 時刻
     recurrence = models.CharField(max_length=10, choices=RECURRING_CHOICES, default='none') # 繰り返し設定
-    completion = models.BooleanField(default=False) # 状態（T/F）
-    sequence = models.IntegerField(default=1) # 行動順序
+    completion = models.BooleanField(default=False)             # 状態（T/F）
+    sequence = models.IntegerField(default=1)                   # 行動順序
     silver_code = models.CharField(max_length=100, default='')  # 高齢者コード
-    
-    
-    
+
 
     def __str__(self):
         return self.title
-    
-            
-        
+
 

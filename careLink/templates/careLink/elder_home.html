@@ -90,11 +90,29 @@
         .button-container button:hover {
             background-color: #45a049;
         }
+        /* change_name リンクのスタイル */
+        .link-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .link-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1em;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .link-container a:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-
-    <h1>コード{{ elder.elder_code }}さん  今日の予定</h1>
+    <h3>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</h3>
+    <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
         <div class="task-container" id="task-container">
@@ -116,13 +134,13 @@
         <script>
             const tasks = document.querySelectorAll('.task');
             const statuses = document.querySelectorAll('.status');
-            const maxVisibleTasks = 5; // 表示するタスクの数
+            const maxVisibleTasks = 4; // 表示するタスクの数
             let startIndex = 0; // 表示開始インデックス
             let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
 
             // サーバーに達成状態を送信
             function updateCompletion(index, newCompletion) {
-                fetch('/careLink/update_schedule', {
+                fetch('/careLink/update_schedule/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -146,8 +164,11 @@
             // 達成状態をクリックで切り替え
             statuses.forEach(status => {
                 status.addEventListener('click', () => {
+                    console.log("click!!!");
                     const index = parseInt(status.getAttribute('data-index'));
                     const isCompleted = status.classList.contains('completed');
+                    console.log(index);
+                    console.log(isCompleted);
                     updateCompletion(index, !isCompleted);
                 });
             });

@@ -20,8 +20,7 @@ class ScheduleForm(forms.ModelForm):
         model = Schedule
         fields = ['title', 'date', 'time', 'recurrence']  # 仮フィールド
         
-        
-        
+
     # # エフェクト画像一日につき一つまでしか登録出来ないようにする（管理者サイトからからはできちゃう）
     
     # def clean(self):
@@ -40,10 +39,6 @@ class ScheduleForm(forms.ModelForm):
     #     return cleaned_data
 
 
-    
-        
-        
-        
 
 # --- 日付入力フォーム
 class DateInputForm(forms.Form):
@@ -51,7 +46,8 @@ class DateInputForm(forms.Form):
         initial=timezone.now().date(),  # デフォルトで今日の日付を設定
         widget=forms.DateInput(attrs={'type': 'date'})
     )
-    
+
+# --- 画像登録フォーム
 class ImageUploadForm(forms.ModelForm):
     class Meta:
         model = FamilyUser

@@ -42,41 +42,40 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
     }
-
-    .sparkles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    .sparkle {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 255, 255, 0.7);
-        border-radius: 50%;
-        animation: sparkleAnimation 2.5s linear infinite;
-    }
-
-    @keyframes sparkleAnimation {
-        0% {
-            transform: scale(0);
-            opacity: 1;
+        .sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
-        50% {
-            transform: scale(1.5);
-            opacity: 0.7;
+
+        .sparkle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            animation: sparkleAnimation 2.5s linear infinite;
         }
-        100% {
-            transform: scale(0);
-            opacity: 0;
+
+        @keyframes sparkleAnimation {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
         }
-    }
 
     .btn-custom {
         font-size: 1.5rem;
@@ -95,8 +94,8 @@
 </style>
 {% endblock style %}
 
-{% block content %}
-<div class="text">タスク全達成！！</div>
+
+    <div class="text">タスク全達成！！</div>
 
 {% if image != "" %}
     <img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
@@ -105,6 +104,7 @@
     <br>
 {% endif %}
 
+  
 <!-- 戻るボタン -->
 <div class="p-4 text-center">
     <a href="{% url 'careLink:elder_home' %}?skip_redirect=true" class="btn btn-custom">
@@ -112,26 +112,27 @@
     </a>
 </div>
 
-<script>
-    // DOMContentLoaded イベントを使って DOM が完全に読み込まれた後に実行
-    document.addEventListener('DOMContentLoaded', function () {
-        const sparklesContainer = document.getElementById('sparkles');
-        const sparkleCount = 100; // キラキラの数を増加
 
-        if (sparklesContainer) {
-            for (let i = 0; i < sparkleCount; i++) {
-                const sparkle = document.createElement('div');
-                sparkle.classList.add('sparkle');
-                sparkle.style.top = `${Math.random() * 100}%`;
-                sparkle.style.left = `${Math.random() * 100}%`;
-                sparkle.style.animationDelay = `${Math.random() * 2}s`;
-                sparkle.style.animationDuration = `${1 + Math.random() * 2}s`;
-                sparklesContainer.appendChild(sparkle);
+    <script>
+        // DOMContentLoaded イベントを使って DOM が完全に読み込まれた後に実行
+        document.addEventListener('DOMContentLoaded', function () {
+            const sparklesContainer = document.getElementById('sparkles');
+            const sparkleCount = 100; // キラキラの数を増加
+
+            if (sparklesContainer) {
+                for (let i = 0; i < sparkleCount; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.classList.add('sparkle');
+                    sparkle.style.top = `${Math.random() * 100}%`;
+                    sparkle.style.left = `${Math.random() * 100}%`;
+                    sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                    sparkle.style.animationDuration = `${1 + Math.random() * 2}s`;
+                    sparklesContainer.appendChild(sparkle);
+                }
+            } else {
+                console.warn('Sparkles container not found. Check if the element with ID "sparkles" exists.');
             }
-        } else {
-            console.warn('Sparkles container not found. Check if the element with ID "sparkles" exists.');
-        }
-    });
-</script>
+        });
+    </script>
 {% endblock content %}
 
