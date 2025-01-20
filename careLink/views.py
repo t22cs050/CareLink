@@ -14,6 +14,7 @@ from .forms import ScheduleForm            # 行動登録に用いるフォー�
 from .forms import UserRegistrationForm    # ユーザ登録に用いるフォーム 
 from .forms import ImageUploadForm
 from .forms import DateInputForm
+
 from . import mixins # カレンダー関連のクラスを定義したやつ
 from django.views import View
 
@@ -189,8 +190,7 @@ def add_schedule(request, date):
         if 'schedule_submit' in request.POST:
             if form.is_valid():
                 schedule = form.save(commit=False)
-                max_sequence = Schedule.objects.filter(date=date, silver_code=elder_code).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
-                print(max_sequence)     
+                max_sequence = Schedule.objects.filter(date=date, silver_code=elder_code).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得    
                 
                 try:
                     with transaction.atomic():
@@ -280,14 +280,9 @@ def elderHome(request):
         elder = None
     print(f"Schedules: {schedules}")  # デバッグ用
     print(f"elder:{elder}") # デバッグ用
-    return render(
-        request,
-        'careLink/elder_home.html',
-        {
-            'schedules': schedules,
-            'elder': elder,
-            'elder_id': elder_id,
-            'elder_code': elder_code})
+    
+    return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
+
 
 # --- 行動順序を変更する関数
 def save_order(request):
@@ -317,7 +312,8 @@ def delete_schedule(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
 
-# --- 達成/未達成の更新
+
+# --- 達成/未達成が更新された場合
 def update_schedule(request):
     if request.method == 'POST':
         try:
@@ -351,18 +347,18 @@ def update_schedule(request):
             return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
     return JsonResponse({'error': 'Invalid method'}, status=405)   
 
-# --- エフェクトの表示
+# --- エフェクト画面
 class AllCompleteEffect(TemplateView):
     def get(self,request):
-
-        print("get! effection!")
-        elder_code = request.COOKIES.get('elder_code') # elder_codeを取得
+        
+        # クッキーから elder_code を取得
+        elder_code = request.COOKIES.get('elder_code')
         
         # elder_code に基づいてスケジュールを取得
         if elder_code:
-            image = FamilyUser.objects.get(elder_code=elder_code).image
+            image=FamilyUser.objects.get(elder_code=elder_code).image
         else:
             image = []  # elder_code がない場合は空のリスト
-        
-        # なぜが画面遷移しない
+        print("aaaaaaaa", image)
         return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})
+

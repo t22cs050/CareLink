@@ -55,7 +55,8 @@ class Schedule(models.Model):
     sequence = models.IntegerField(default=1)                   # 行動順序
     silver_code = models.CharField(max_length=100, default='')  # 高齢者コード
 
+
     def __str__(self):
         return self.title
-    
+
 
