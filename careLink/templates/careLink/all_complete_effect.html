@@ -26,24 +26,20 @@
 
     .text {
         font-family: 'Arial', sans-serif;
-        font-size: 4rem;
+        font-size: 3rem;
         font-weight: bold;
         color: #ffcc00;
-        text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
-                     0 0 30px rgba(255, 204, 0, 0.8),
-                     0 0 40px rgba(255, 204, 0, 0.6),
-                     0 0 50px rgba(255, 204, 0, 0.4);
-        position: relative;
-        padding: 20px;
-        margin-bottom: 30px;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 204, 0, 0.8);
+        text-align: center;
+        margin-bottom: 20px;
     }
 
     .photo {
-        width: 80%; /* 画面幅の 80% を占めるように設定 */
+        max-width: 100%;
         height: auto;
         border: 8px solid rgba(255, 255, 255, 0.9);
-        border-radius: 20px;
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.5);
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
     }
 
@@ -81,21 +77,38 @@
             opacity: 0;
         }
     }
+
+    .btn-custom {
+        font-size: 1.5rem;
+        border-radius: 10px;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        text-decoration: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-custom:hover {
+        background-color: #0056b3;
+    }
 </style>
 {% endblock style %}
 
 {% block content %}
 <div class="text">タスク全達成！！</div>
 
-<img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
+{% if image != "" %}
+    <img src="{{ MEDIA_URL }}{{ image }}" alt="スケジュール画像" class="photo">
 
-<div class="sparkles" id="sparkles"></div>
-<br>
+    <div class="sparkles" id="sparkles"></div>
+    <br>
+{% endif %}
 
 <!-- 戻るボタン -->
 <div class="p-4 text-center">
-    <a href="{% url 'careLink:elder_home' %}?skip_redirect=true" class="btn btn-lg btn-warning fw-bold px-5 py-3 shadow-lg" style="font-size: 1.5rem; border-radius: 10px;">
-         戻る
+    <a href="{% url 'careLink:elder_home' %}?skip_redirect=true" class="btn btn-custom">
+        戻る
     </a>
 </div>
 
