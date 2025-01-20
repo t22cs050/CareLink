@@ -2,8 +2,38 @@
 {% load widget_tweaks %}
 
 {% block content %}
+    <style>
+        .tab-buttons {
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+
     <div class="container mt-4">
-        {% if existing_schedules %}
         <h2>登録済みスケジュール</h2>
         <table class="table table-striped">
             <thead>
@@ -25,13 +55,37 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% endif %}
 
-
+        <div class="tab-buttons">
+            <button type="button" class="tab-button" data-target="image-upload-form">画像アップロード</button>
+        </div>
+        
+        <div id="image-upload-form" class="tab-content">
+            <h4>画像アップロード</h4>
+            <!-- すでにアップロードされている画像の表示 -->
+            {% if request.user.image %}
+            <div class="existing-images mb-3">
+                <div class="image-item">
+                    <img src="{{ request.user.image.url }}" alt="User Image" style="max-width: 100px;">
+                    <button type="button" class="delete-image-btn" data-url="{% url 'careLink:delete_image' %}">削除</button>
+                </div>
+            </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_image">画像を選択</label>
+                    <input type="file" name="image" multiple class="form-control" id="id_image">
+                </div>
+                <button type="submit" name="image_submit">アップロード</button>
+            </form>
+        </div>
 
         <h2>新規追加 ({{ date }})</h2>
-        <form method="post" class="mb-4">
+        <form method="post" class="mb-4" enctype="multipart/form-data">
             {% csrf_token %}
+
             <div class="mb-3">
                 {{ form.title.label_tag }} 
                 {{ form.title|add_class:"form-control" }}
@@ -50,59 +104,112 @@
             </div>
             
             <div class="p-3">
-                <button type="submit" class="btn btn-primary">登録</button>
+                <button type="submit" class="btn btn-primary" name="schedule_submit">登録</button>
                 <a class="btn btn-outline-secondary" href="{% url 'careLink:calendar' %}">戻る</a>            
             </div>
+            
         </form>
     </div>
 
-<script>
-    var el = document.getElementById('schedule-list');
-    console.log(el)
-    var sortable = Sortable.create(el, {
-        onEnd: function (evt) {
-            var order = [];
-            for (var i = 0; i < el.children.length; i++) {
-                order.push(el.children[i].getAttribute('data-id'));
-            }
-            console.log(order)
-            // AJAXリクエストで行動順序を保存
-            fetch('/careLink/save_order/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ order: order })
-            });
-        }
-    });
-
-    // 予定の削除を行う処理
-    el.addEventListener('click', function(event) {
-        if (event.target.classList.contains('delete-button')) {
-            var scheduleId = event.target.dataset.id;
-            if (confirm('本当に削除しますか？')) {
-                fetch('/careLink/delete_schedule/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ schedule_id: scheduleId }) // schedule_idを送信
-                }).then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        event.target.closest('tr').remove(); // 行を削除
-                    } else {
-                        alert('削除に失敗しました。');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sortableの初期化
+            var el = document.getElementById('schedule-list');
+            if (el) {  // 要素の存在確認
+                var sortable = Sortable.create(el, {
+                    onEnd: function (evt) {
+                        var order = [];
+                        for (var i = 0; i < el.children.length; i++) {
+                            order.push(el.children[i].getAttribute('data-id'));
+                        }
+                        console.log(order)
+                        fetch('/careLink/save_order/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({ order: order })
+                        });
                     }
                 });
             }
-        }
-    });
-
-
     
-</script>
+            // 予定の削除処理
+            if (el) {  // 要素の存在確認
+                el.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('delete-button')) {
+                        var scheduleId = event.target.dataset.id;
+                        if (confirm('本当に削除しますか？')) {
+                            fetch('/careLink/delete_schedule/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({ schedule_id: scheduleId })
+                            }).then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    event.target.closest('tr').remove();
+                                } else {
+                                    alert('削除に失敗しました。');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+    
+            // 画像アップロードボタンの処理
+            document.querySelectorAll('.upload-image-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const scheduleId = this.getAttribute('data-schedule-id');
+                    document.getElementById('schedule-id-input').value = scheduleId;
+                    document.getElementById('image-upload-form').style.display = 'block';
+                });
+            });
+
+            // 画像削除の処理
+            document.querySelectorAll('.delete-image-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('画像を削除してもよろしいですか？')) {
+                        fetch(this.dataset.url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                this.closest('.image-item').remove();
+                            }
+                        });
+                    }
+                });
+            });
+
+            // タブ切り替え機能
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const targetContent = document.getElementById(targetId);
+                    
+                    if (this.classList.contains('active')) {
+                        this.classList.remove('active');
+                        targetContent.classList.remove('active');
+                    } else {
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(content => 
+                            content.classList.remove('active'));
+                        
+                        this.classList.add('active');
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

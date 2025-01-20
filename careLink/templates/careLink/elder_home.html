@@ -164,8 +164,11 @@
             // 達成状態をクリックで切り替え
             statuses.forEach(status => {
                 status.addEventListener('click', () => {
+                    console.log("click!!!");
                     const index = parseInt(status.getAttribute('data-index'));
                     const isCompleted = status.classList.contains('completed');
+                    console.log(index);
+                    console.log(isCompleted);
                     updateCompletion(index, !isCompleted);
                 });
             });
