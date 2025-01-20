@@ -52,12 +52,9 @@ def get_elder_from_cookie(request):
     クッキーからElderIdとElderCodeを取得する関数。
     :param request: HttpRequestオブジェクト
     :return: elder_idとelder_codeのタプル（存在しない場合はNone, None）
-    """
-    if 'elder_id' in request.COOKIES:
-        print("クッキー、あります")
+    """    
     elder_id = request.COOKIES.get('elder_id')
     elder_code = request.COOKIES.get('elder_code')
-    print(f"elder_id: {elder_id}, elder_code: {elder_code}")  # デバッグ用出力
     return elder_id, elder_code
 
 
@@ -88,7 +85,7 @@ class signUpElder(CreateView):
         # print("get_context_data")        
         
         return context
-    
+
     # データベースに保存
     def form_valid(self, form):
         # セッションからelder_idとelder_codeを取得してセット
@@ -102,11 +99,57 @@ class signUpElder(CreateView):
 
         # Cookie に elder_id と elder_code を保存
         response = super().form_valid(form)
-        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
-        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+        # 一年間保存
+        response.set_cookie('elder_id',
+                            form.instance.elder_id,
+                            max_age=60*60*24*360)
+        response.set_cookie('elder_code',
+                            form.instance.elder_code,
+                            max_age=60*60*24*360)
 
         return response
 
+def change_elder_name(request):
+
+    if request.method == 'POST':
+        code = request.COOKIES.get('elder_code')
+        # print("code:",code)
+        elder = get_object_or_404(Elder, elder_code=code)
+        new_name = request.POST.get('elder_name', '').strip()
+        # print("入力した名前:",new_name)
+        # print("elder : ", elder)
+        if new_name and len(new_name) <= 10:
+            # print("条件達成")
+            elder.elder_name = new_name
+            elder.save()
+            return redirect('/careLink/login')  # ホーム画面にリダイレクト
+        else:
+            return HttpResponse("名前は必須で10文字以内です。", status=400)
+
+    return render(request, 'careLink/change_name.html')
+
+def elder_logout(request):
+    if request.method == 'POST':
+        if 'logout' in request.POST:
+            response = HttpResponseRedirect('/careLink/login')
+            # クッキー削除
+            response.delete_cookie('elder_id')
+            response.delete_cookie('elder_code')
+            # リダイレクト
+            return response  # HttpResponseオブジェクトを直接返す
+        elif 'cancel' in request.POST:
+            return redirect('/careLink/elder/home')
+        
+    elder_code = request.COOKIES.get('elder_code')
+    if elder_code:
+        try:
+            # elder_code に基づいて Elder インスタンスを取得
+            elder = Elder.objects.get(elder_code=elder_code)
+        except Elder.DoesNotExist:
+            elder = None
+    else:
+        elder = None
+    return render(request, 'careLink/elder_logout.html', {'elder': elder})
 
 # --- 家族側sginup画面
 class signUpFamily(CreateView):
@@ -254,7 +297,6 @@ def delete_image(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
-
 def elderHome(request):
 
     if (request.method == 'POST'):
@@ -280,8 +322,13 @@ def elderHome(request):
         elder = None
     print(f"Schedules: {schedules}")  # デバッグ用
     print(f"elder:{elder}") # デバッグ用
-    
-    return render(request, 'careLink/elder_home.html', {'schedules': schedules, 'elder': elder, 'elder_code':elder_code})
+
+    return render(request,
+                  'careLink/elder_home.html',
+                  {'schedules': schedules,
+                   'elder': elder,
+                   'elder_id': elder_id,
+                   'elder_code': elder_code})
 
 
 # --- 行動順序を変更する関数

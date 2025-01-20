@@ -1,0 +1,9 @@
+<body>
+    <h2>ID: {{ elder.elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder.elder_code }}</h2>
+    <h3><font color="red"> 再ログインの際必要になるため、以上の情報をメモしてください </font></h3>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="logout">ログアウトする</button>
+        <button type="submit" name="cancel">ログアウトしない</button>
+    </form>
+</body>

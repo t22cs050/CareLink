@@ -9,6 +9,8 @@ class Elder(models.Model):
     elder_id = models.IntegerField(unique=True, default='00000')
     # 4桁の整数
     elder_code = models.IntegerField(unique=True, default='0000')
+    
+    elder_name = models.CharField(max_length=10,default='ユーザー')
 
     def save(self, *args, **kwargs):
         # elder_idを自動生成（5桁以上10桁未満）
@@ -23,7 +25,13 @@ class Elder(models.Model):
                 Elder, 'elder_code', 1000, 9999
             )
             print("is not elder_code")
+        if self.elder_name == str(self.elder_code):
+            self().save(*args, **kwargs)
         super().save(*args, **kwargs)  # 元のsaveメソッドを呼び出す
+        
+        def __str__(self):
+            return self.elder_name
+        
 
 
 class FamilyUser(AbstractUser):

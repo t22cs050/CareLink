@@ -234,6 +234,11 @@
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
+    <div class="link-container">
+        <a >身体情報を入力</a>
+        <a href="{% url 'careLink:elder_logout' %}">ログアウト</a>
+        <a href="{% url 'careLink:change_name' %}">名前を変更</a>
+    </div>
 
 </body>
 </html>

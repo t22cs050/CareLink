@@ -25,4 +25,7 @@ urlpatterns = [
     path('get_schedules/', get_schedules, name='get_schedules'),
     path('update_schedule/', views.update_schedule, name='update_schedule'),
     path('elder/effect',views.AllCompleteEffect.as_view(),name='all_complete_effect'),
+    path('elder/logout/', views.elder_logout, name='elder_logout'),
+    path('change_elder_name/', views.change_elder_name, name='change_name'),
+
 ]
