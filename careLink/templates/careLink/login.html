@@ -20,6 +20,19 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        .emergency-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            color:rgb(224, 50, 50);
+            border: 2px solid rgb(224, 50, 50);
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
         .icon-link i {
             margin-right: 8px;
         }
@@ -83,6 +96,7 @@
         {% endif %}
     </form>
     <a href="signup_elder" class="icon-link"><i class="fas fa-user"></i>高齢者側サインアップ</a>
-    <a href="signup_family" class="icon-link"><i class="fas fa-users"></i>家族側サインアップ</a>
+    <a href="signup_family" class="icon-link"><i class="fas fa-users"></i>家族側サインアップ</a><br/>
+    <a href="emergency_login" class="emergency-link"><i class="fas fa-exclamation-circle"></i>高齢者側 緊急ログイン</a>
 </body>
 </html>
