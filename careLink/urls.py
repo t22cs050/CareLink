@@ -16,7 +16,6 @@ urlpatterns = [
     path('family/schedule/<str:date>/', add_schedule, name='add_schedule'),
     path('family/image/', views.result_view, name='image_save'),
     path('family/result/', views.result_view, name='result'),
-    path('family/image/', views.result_view, name='image_save'),
     
     path('save_order/', views.save_order, name='save_order'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
@@ -30,3 +29,4 @@ urlpatterns = [
     path('emergency_login/',views.emergency_login, name='emergency_login'),
 
 ]
+    
