@@ -49,8 +49,23 @@
             box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
             outline: none;
         }
+        button, .back-button {
+            display: block;
+            width: 10%;
+            padding: 10px;
+            background-color:rgb(76, 175, 167);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
         button {
-            width: 100%;
+            width: 95%;
             padding: 10px;
             background-color: #4CAF50;
             color: white;
@@ -86,6 +101,8 @@
             pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
         <button type="submit">ログイン</button>
+        
     </form>
+    <a href="{% url 'careLink:user_login' %}" class="back-button">戻る</a>
 </body>
 </html>
