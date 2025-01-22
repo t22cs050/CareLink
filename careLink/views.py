@@ -335,7 +335,7 @@ def elderHome(request):
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
         # elder_code に基づいてスケジュールをフィルタリング
-        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
+        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('time')
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
@@ -397,7 +397,7 @@ def update_schedule(request):
             elder_code = request.COOKIES.get('elder_code')
 
             # 該当するスケジュールを取得して保存
-            schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
+            schedule = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('time')[index]
             schedule.completion = completion
             schedule.save()
 
