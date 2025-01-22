@@ -77,11 +77,11 @@
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        <label for="elder_id">Elder ID( 5桁以上10桁未満の整数 )</label>
+        <label for="elder_id">ID( 5桁以上10桁未満の整数 )</label>
         <input type="number" id="elder_id" name="elder_id" 
             pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
-        <label for="elder_code">Elder Code( 4桁の整数 )</label>
+        <label for="elder_code">Code( 4桁の整数 )</label>
         <input type="number" id="elder_code" name="elder_code" 
             pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
