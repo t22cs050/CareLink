@@ -27,5 +27,6 @@ urlpatterns = [
     path('elder/effect',views.AllCompleteEffect.as_view(),name='all_complete_effect'),
     path('elder/logout/', views.elder_logout, name='elder_logout'),
     path('change_elder_name/', views.change_elder_name, name='change_name'),
+    path('emergency_login/',views.emergency_login, name='emergency_login'),
 
 ]

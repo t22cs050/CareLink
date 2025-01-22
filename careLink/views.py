@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Max
 from django.template.loader import render_to_string
@@ -150,6 +151,29 @@ def elder_logout(request):
     else:
         elder = None
     return render(request, 'careLink/elder_logout.html', {'elder': elder})
+
+
+def emergency_login(request):
+    if request.method == "POST":
+        elder_id = request.POST.get("elder_id")
+        elder_code = request.POST.get("elder_code")
+        
+        try:
+            # Elderモデルから一致するユーザーを検索
+            elder = Elder.objects.get(elder_id=elder_id, elder_code=elder_code)
+            
+            # 成功時にCookieにelder_codeを保存
+            response = redirect("/careLink/login")
+            response.set_cookie("elder_id", elder_id, max_age=60, httponly=True)  # 1分有効
+            response.set_cookie("elder_code", elder_code, max_age=60, httponly=True)  # 1分有効
+            return response
+        except ObjectDoesNotExist:
+            # 一致しない場合
+            return render(request, "careLink/emergency_login.html", {
+                "error": "IDまたはコードが間違っています。",
+            })
+    else:
+        return render(request, "careLink/emergency_login.html")
 
 # --- 家族側sginup画面
 class signUpFamily(CreateView):
