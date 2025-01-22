@@ -137,7 +137,9 @@
             const maxVisibleTasks = 4; // 表示するタスクの数
             let startIndex = 0; // 表示開始インデックス
             let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
-
+            const scrollUpButton = document.getElementById('scroll-up');
+            const scrollDownButton = document.getElementById('scroll-down');
+        
             // サーバーに達成状態を送信
             function updateCompletion(index, newCompletion) {
                 fetch('/careLink/update_schedule/', {
@@ -160,21 +162,24 @@
                 })
                 .catch(error => console.error('エラー:', error));
             }
-
+        
             // 達成状態をクリックで切り替え
             statuses.forEach(status => {
                 status.addEventListener('click', () => {
+                    console.log("click!!!");
                     const index = parseInt(status.getAttribute('data-index'));
                     const isCompleted = status.classList.contains('completed');
+                    console.log(index);
+                    console.log(isCompleted);
                     console.log('達成状態を切り替え');
                     updateCompletion(index, !isCompleted);
                 });
             });
-
+        
             // 達成タスクの次のタスクを強調表示する
             function findAndHighlightNextTask() {
                 let lastCompletedIndex = -1;
-
+        
                 // 達成済みタスクの最後のインデックスを探す
                 tasks.forEach((task, index) => {
                     const status = task.querySelector('.status');
@@ -182,7 +187,7 @@
                         lastCompletedIndex = index;
                     }
                 });
-
+        
                 // 達成済みタスクがない場合は最初のタスクを選択
                 if (lastCompletedIndex === -1) {
                     selectedIndex = 0;
@@ -192,7 +197,7 @@
                     selectedIndex = nextTaskIndex < tasks.length ? nextTaskIndex : 0;
                 }
             }
-
+        
             // タスクの表示を更新
             function updateTaskDisplay() {
                 tasks.forEach((task, index) => {
@@ -207,6 +212,20 @@
                         task.style.display = 'none'; // 非表示
                     }
                 });
+        
+                // ボタンの表示/非表示を更新
+                updateButtonVisibility();
+            }
+        
+            // ボタンの表示/非表示を制御
+            function updateButtonVisibility() {
+                if (tasks.length <= maxVisibleTasks) {
+                    scrollUpButton.style.display = 'none';
+                    scrollDownButton.style.display = 'none';
+                } else {
+                    scrollUpButton.style.display = 'inline-block';
+                    scrollDownButton.style.display = 'inline-block';
+                }
             }
 
             function checkAllCompleted() {
@@ -221,21 +240,21 @@
             }
 
             // 上に移動
-            document.getElementById('scroll-up').addEventListener('click', () => {
+            scrollUpButton.addEventListener('click', () => {
                 if (startIndex > 0) {
                     startIndex--;
                     updateTaskDisplay();
                 }
             });
-
+        
             // 下に移動
-            document.getElementById('scroll-down').addEventListener('click', () => {
+            scrollDownButton.addEventListener('click', () => {
                 if (startIndex + maxVisibleTasks < tasks.length) {
                     startIndex++;
                     updateTaskDisplay();
                 }
             });
-
+        
             // 初期状態を設定
             findAndHighlightNextTask();
             updateTaskDisplay();
@@ -243,6 +262,7 @@
                 console.log("AllCompleted");
             }
         </script>
+        
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
