@@ -291,7 +291,7 @@ def elderHome(request):
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
-            print(f"elder:{elder}")
+            # print(f"elder:{elder}")
         except Elder.DoesNotExist:
             elder = None
     else:

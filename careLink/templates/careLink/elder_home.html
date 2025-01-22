@@ -166,6 +166,7 @@
                 status.addEventListener('click', () => {
                     const index = parseInt(status.getAttribute('data-index'));
                     const isCompleted = status.classList.contains('completed');
+                    console.log('達成状態を切り替え');
                     updateCompletion(index, !isCompleted);
                 });
             });
@@ -208,6 +209,17 @@
                 });
             }
 
+            function checkAllCompleted() {
+                let completed = true;
+                tasks.forEach((task, index) => {
+                    const status = task.querySelector('.status');
+                    if (!(status && status.classList.contains('completed'))) {
+                        completed = false;
+                    }
+                });
+                return completed;
+            }
+
             // 上に移動
             document.getElementById('scroll-up').addEventListener('click', () => {
                 if (startIndex > 0) {
@@ -227,6 +239,9 @@
             // 初期状態を設定
             findAndHighlightNextTask();
             updateTaskDisplay();
+            if(checkAllCompleted()){
+                console.log("AllCompleted");
+            }
         </script>
     {% else %}
         <p>予定はありません。</p>
