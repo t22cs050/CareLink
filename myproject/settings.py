@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-%u6*evm%q41e69rasclv1635)6oyhm7*j8=22!&*p($&4w_l8a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost','pythonanywhere.com','t22cs043.pythonanywhere.com']
 
 """
 AUTH_USER_MODELではログイン認証に用いるモデル名を指定する。
@@ -128,9 +128,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-
+import os
 STATIC_URL = "static/"
-
+STATIC_ROOT=os.path.join(BASE_DIR,'static',)
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
