@@ -16,7 +16,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 #t22cs043のところはすべて自分の学籍番号に変更すること！！！！！！！！！！
 import os
-BASE_DIR = os.path.join('/home/t22cs033/t22cs033.pythonanywhere.com/')
+BASE_DIR = os.path.join('/home/t22cs0331/t22cs0331.pythonanywhere.com/')
 
 
 # Quick-start development settings - unsuitable for production
