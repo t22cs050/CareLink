@@ -164,8 +164,8 @@ class signUpElder(CreateView):
 
         # Cookie に elder_id と elder_code を保存
         response = super().form_valid(form)
-        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
-        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60*24*360)
+        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60*24*360)
 
         return response
 
