@@ -29,7 +29,7 @@
             padding: 0 20px;
             gap: 10px;
             margin-top: 20px;
-            height: 400px;
+            height: 320px;
             overflow: hidden;
             box-sizing: border-box;
         }
@@ -115,6 +115,10 @@
     <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
+        <div class="button-container">
+            <button id="scroll-up">↑ 上に移動</button>
+        </div>
+
         <div class="task-container" id="task-container">
             {% if schedules %}
                 {% for schedule in schedules %}
@@ -131,9 +135,7 @@
             {% endif %}
         </div>
         
-        
-        <div class="button-container" style="display: {% if schedules and schedules|length >= 2 %}flex{% else %}none{% endif %};">
-            <button id="scroll-up">↑ 上に移動</button>
+        <div class="button-container">
             <button id="scroll-down">↓ 下に移動</button>
         </div>
 
@@ -204,6 +206,21 @@
 
             // タスクの表示を更新
             function updateTaskDisplay() {
+                const scrollUpButton = document.getElementById('scroll-up');
+                const scrollDownButton = document.getElementById('scroll-down');
+
+                if (canScrollUp()) {
+                    scrollUpButton.style.display = 'flex';
+                } else {
+                    scrollUpButton.style.display = 'none';
+                }
+
+                if (canScrollDown()) {
+                    scrollDownButton.style.display = 'flex';
+                } else {
+                    scrollDownButton.style.display = 'none';
+                }
+
                 tasks.forEach((task, index) => {
                     if (index >= startIndex && index < startIndex + maxVisibleTasks) {
                         task.style.display = 'flex'; // 表示
@@ -217,17 +234,6 @@
                     }
                 });
             }
-        
-            // ボタンの表示/非表示を制御
-            function updateButtonVisibility() {
-                if (tasks.length <= maxVisibleTasks) {
-                    scrollUpButton.style.display = 'none';
-                    scrollDownButton.style.display = 'none';
-                } else {
-                    scrollUpButton.style.display = 'inline-block';
-                    scrollDownButton.style.display = 'inline-block';
-                }
-            }
 
             function checkAllCompleted() {
                 let completed = true;
@@ -240,10 +246,18 @@
                 return completed;
             }
 
+            function canScrollUp() {
+                return startIndex > 0;
+            }
+
+            function canScrollDown() {
+                return startIndex + maxVisibleTasks < tasks.length;
+            }
+
 
             // 上に移動
             document.getElementById('scroll-up').addEventListener('click', () => {
-                if (startIndex > 0) {
+                if (canScrollUp) {
                     startIndex--;
                     updateTaskDisplay();
                 }
@@ -251,7 +265,7 @@
 
             // 下に移動
             document.getElementById('scroll-down').addEventListener('click', () => {
-                if (startIndex + maxVisibleTasks < tasks.length) {
+                if (canScrollDown) {
                     startIndex++;
                     updateTaskDisplay();
                 }
