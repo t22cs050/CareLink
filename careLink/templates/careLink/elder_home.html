@@ -116,17 +116,23 @@
 
     {% if elder %}
         <div class="task-container" id="task-container">
-            {% for schedule in schedules %}
-            <div class="task" data-index="{{ forloop.counter0 }}">
-                <p>{{ schedule.time }}  {{ schedule.title }}</p>
-                <div class="status {% if schedule.completion %}completed{% else %}not-completed{% endif %}" data-index="{{ forloop.counter0 }}">
-                    <span>{% if schedule.completion %}達成{% else %}未達成{% endif %}</span>
+            {% if schedules %}
+                {% for schedule in schedules %}
+                <div class="task" data-index="{{ forloop.counter0 }}">
+                    <p>{{ schedule.time }}  {{ schedule.title }}</p>
+                    <div class="status {% if schedule.completion %}completed{% else %}not-completed{% endif %}" data-index="{{ forloop.counter0 }}">
+                        <span>{% if schedule.completion %}達成{% else %}未達成{% endif %}</span>
+                    </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p style="font-size: 13pt;">本日のタスクは登録されていません。</p>
+                <img src="../../media/icons/aisatsu_kodomo_zenshin_girl.png" style="width: 150pt;">
+            {% endif %}
         </div>
-
-        <div class="button-container">
+        
+        
+        <div class="button-container" style="display: {% if schedules and schedules|length >= 2 %}flex{% else %}none{% endif %};">
             <button id="scroll-up">↑ 上に移動</button>
             <button id="scroll-down">↓ 下に移動</button>
         </div>

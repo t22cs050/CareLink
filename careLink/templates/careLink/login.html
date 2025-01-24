@@ -6,6 +6,19 @@
     <title>Login</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
+        body {
+            display: flex;
+
+            /* 縦に並べる */
+            flex-direction: column; 
+
+            /* 縦方向中央揃え */
+            justify-content: center; 
+
+            /* viewport heightの100%に設定 */
+            height: 100vh; 
+        }
+
         /* アイコン付きリンクのスタイル */
         .icon-link {
             display: inline-flex;
@@ -95,8 +108,10 @@
             <p>{{ error }}</p>
         {% endif %}
     </form>
-    <a href="signup_elder" class="icon-link"><img src="../../media/icons/jijibaba.png" style="height: 70px;">新規登録</a>
-    <a href="signup_family" class="icon-link"><img src="../../media/icons/fufu_young.png" style="height: 70px;">家族側サインアップ</a><br/>
-    <a href="emergency_login" class="emergency-link"><i class="fas fa-exclamation-circle"></i>高齢者側 緊急ログイン</a>
+    <div style="display: flex; flex-wrap: wrap;">
+        <a href="signup_elder" class="icon-link" style="width: 200px;"><img src="../../media/icons/jijibaba.png" style="height: 70px;">新規登録</a>
+        <a href="signup_family" class="icon-link" style="width: 200px;"><img src="../../media/icons/fufu_young.png" style="height: 70px;">家族側サインアップ</a>
+    </div>
+    <a href="emergency_login" class="emergency-link" style="width: 200px;"><i class="fas fa-exclamation-circle"></i>高齢者側 緊急ログイン</a>
 </body>
 </html>

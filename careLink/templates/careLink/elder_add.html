@@ -2,17 +2,40 @@
 {% load widget_tweaks %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1 class="mb-4">新規登録</h1>
+    <style>
         
-        <!-- 生成されたelder_codeを表示 -->
-        <p>あなたの みまもり番号 は <strong>{{ elder_code }}</strong> です。登録しますか？</p>
+        body {
+            display: flex;
+            /* 縦に並べる */
+            flex-direction: column; 
 
-        <form method="post" class="needs-validation" novalidate>
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">登録</button>
-        </form>
-        
-        <a href="login" class="btn btn-link">ログインページに戻る</a>
+            /* 縦方向中央揃え */
+            justify-content: center; 
+
+            /* viewport heightの100%に設定 */
+            height: 100vh; 
+        }
+    </style>
+
+    <div class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="mb-4 text-center" style="font-size: 25pt;">新規登録</h1>
+                
+                <!-- 生成されたelder_codeを表示 -->
+                <p class="text-center" style="font-size: 12pt;">あなたの みまもり番号 は <strong>{{ elder_code }}</strong> です。登録しますか？</p>
+
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" style="font-size: 12pt;">登録</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="login" class="btn btn-link" style="font-size: 12pt;">ログインページに戻る</a>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
