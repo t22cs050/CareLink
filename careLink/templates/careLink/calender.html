@@ -8,12 +8,12 @@
     .calendar-container {
         background-color: white;
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 20px;
         margin-top: 20px;
     }
     .table-hover tbody tr:hover {
-        background-color: rgba(0,123,255,0.075);
+        background-color: rgba(0, 123, 255, 0.075);
     }
     .day-link {
         display: block;
@@ -21,16 +21,41 @@
         transition: background-color 0.3s ease;
     }
     .day-link:hover {
-        background-color: rgba(0,123,255,0.1);
+        background-color: rgba(0, 123, 255, 0.1);
         text-decoration: none;
     }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .table {
+        table-layout: fixed;
+        width: 100%;
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+    th, td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px;
+    }
+    th {
+        font-size: 1rem;
+        background-color: #343a40;
+        color: #ffffff;
+    }
+    td {
+        font-size: 0.9rem;
+    }
     @media (max-width: 768px) {
-        .btn-group-responsive {
-            flex-direction: column;
-            gap: 10px;
+        .calendar-container {
+            padding: 10px;
         }
-        .btn-group-responsive > * {
-            width: 100%;
+        .day-link {
+            padding: 5px;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 5px;
         }
     }
 </style>

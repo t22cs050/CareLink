@@ -112,8 +112,8 @@ def emergency_login(request):
             
             # 成功時にCookieにelder_codeを保存
             response = redirect("/careLink/login")
-            response.set_cookie("elder_id", elder_id, max_age=60, httponly=True)  # 1分有効
-            response.set_cookie("elder_code", elder_code, max_age=60, httponly=True)  # 1分有効
+            response.set_cookie("elder_id", elder_id, max_age=60*60*24*360, httponly=True) 
+            response.set_cookie("elder_code", elder_code, max_age=60*60*24*360, httponly=True)  
             return response
         except ObjectDoesNotExist:
             # 一致しない場合
@@ -345,7 +345,7 @@ def elderHome(request):
         else:
             request.session['skip_redirect'] = False  
             
-            
+
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
@@ -403,6 +403,7 @@ def update_schedule(request):
 
             # 該当するスケジュールを取得
             schedule = Schedule.objects.all()[index]
+
             schedule.completion = completion
             schedule.save()
 
