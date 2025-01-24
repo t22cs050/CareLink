@@ -1,0 +1,5 @@
+Django==5.1.4
+python-dateutil==2.8.1
+django-bootstrap5==24.3
+django-widget-tweaks==1.5.0
+pillow==11.1.0
