@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from .models import Elder
 
 # --- ユーザ登録フォーム
 class UserRegistrationForm(UserCreationForm):
@@ -13,6 +14,44 @@ class UserRegistrationForm(UserCreationForm):
             'username',
             'elder_code'
         )
+
+    # --- ユーザー名の重複チェック
+    def clean_username(self):
+        # すでに登録されているユーザー名の確認
+        username = self.cleaned_data['username']
+        if FamilyUser.objects.filter(username=username).exists():
+            raise ValidationError('このユーザー名は既に登録されています。別のユーザー名を選択してください。')
+        
+        return username
+
+    # ---- elderコードのバリデーション
+    def clean_elder_code(self):
+        # elderコードがElderモデルに存在するか確認
+        elder_code = self.cleaned_data['elder_code']
+        if not Elder.objects.filter(elder_code=elder_code).exists():
+            raise ValidationError('無効なelderコードです。')
+        return elder_code
+
+    # --- パスワードのバリデーション
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        
+        # パスワード一致のチェック
+        if password1 and password2 and password1 != password2:
+            raise ValidationError('パスワードが一致しません。')
+        
+        # パスワードの複雑性チェック
+        if len(password1) < 8:
+            raise ValidationError('パスワードは少なくとも8文字以上である必要があります。')
+        
+        return password2
+    
+    # --- フォーム全体のバリデーション
+    def clean(self):
+        cleaned_data = super().clean()        
+        return cleaned_data
+    
 
 # --- 行動登録フォーム
 class ScheduleForm(forms.ModelForm):

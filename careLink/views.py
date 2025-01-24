@@ -409,7 +409,7 @@ def update_schedule(request):
             schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
             schedule.completion = completion
             schedule.save()
-            
+
             # すべてのスケジュールが達成された場合はエフェクトを表示
 
             new_schedule = Schedule.objects.filter(silver_code=elder_code, date=today)
@@ -442,3 +442,7 @@ class AllCompleteEffect(TemplateView):
             
         
         return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})
+    
+
+def family_help(request):
+    return render(request, "careLink/family_help.html",{})
