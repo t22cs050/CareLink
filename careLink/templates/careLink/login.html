@@ -83,12 +83,12 @@
     </style>
 </head>
 <body>
-    <h1>Login Page</h1>
+    <h1>ログインページ</h1>
     <form method="post">
         {% csrf_token %}
-        <label for="username">Username:</label>
+        <label for="username">ユーザー名:</label>
         <input type="text" id="username" name="username" class="styled-input" required>
-        <label for="password">Password:</label>
+        <label for="password">パスワード:</label>
         <input type="password" id="password" name="password" class="styled-input" required>
         <button type="submit" class="styled-button">ログイン</button>
         {% if error %}

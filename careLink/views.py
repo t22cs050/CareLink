@@ -4,20 +4,17 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Max
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Elder, Schedule, FamilyUser
+from .models import Elder, Schedule,FamilyUser
 from .forms import ScheduleForm            # 行動登録に用いるフォーム
 from .forms import UserRegistrationForm    # ユーザ登録に用いるフォーム 
-from .forms import ImageUploadForm
-from .forms import DateInputForm
-
+from .forms import DateInputForm,ImageUploadForm
 from . import mixins # カレンダー関連のクラスを定義したやつ
-from django.views import View
 
 from datetime import timedelta, date, datetime, timezone
 from dateutil.relativedelta import relativedelta # pip install python-dateutil 
@@ -53,62 +50,13 @@ def get_elder_from_cookie(request):
     クッキーからElderIdとElderCodeを取得する関数。
     :param request: HttpRequestオブジェクト
     :return: elder_idとelder_codeのタプル（存在しない場合はNone, None）
-    """    
+    """
+    if 'elder_id' in request.COOKIES:
+        print("クッキー、あります")
     elder_id = request.COOKIES.get('elder_id')
     elder_code = request.COOKIES.get('elder_code')
+    print(f"elder_id: {elder_id}, elder_code: {elder_code}")  # デバッグ用出力
     return elder_id, elder_code
-
-
-def isSignUpedElder(request):
-    elder_id, elder_code = get_elder_from_cookie(request)
-    return (elder_id and elder_code)
-
-
-class signUpElder(CreateView):
-    model = Elder
-    fields = ()
-    template_name = 'careLink/elder_add.html'
-    success_url = '/careLink/elder/home'
-
-    # アクセスするときに呼び出される
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # セッションにelder_idとelder_codeがなければ生成して保存
-        if 'elder_id' not in self.request.session:
-            self.request.session['elder_id'] = generate_unique_integer(Elder, 'elder_id', 10000, 999999999)
-        if 'elder_code' not in self.request.session:
-            self.request.session['elder_code'] = generate_unique_integer(Elder, 'elder_code', 1000, 9999)
-
-        # セッションからelder_idとelder_codeを取得してコンテキストに追加
-        context['elder_id'] = self.request.session['elder_id']
-        context['elder_code'] = self.request.session['elder_code']
-        # print("get_context_data")        
-        
-        return context
-
-    # データベースに保存
-    def form_valid(self, form):
-        # セッションからelder_idとelder_codeを取得してセット
-        id = self.request.session.pop('elder_id')
-        form.instance.elder_id = id
-        code = self.request.session.pop('elder_code')
-        form.instance.elder_code = code
-
-        # データベースに保存
-        form.instance.save()
-
-        # Cookie に elder_id と elder_code を保存
-        response = super().form_valid(form)
-        # 一年間保存
-        response.set_cookie('elder_id',
-                            form.instance.elder_id,
-                            max_age=60*60*24*360)
-        response.set_cookie('elder_code',
-                            form.instance.elder_code,
-                            max_age=60*60*24*360)
-
-        return response
 
 def change_elder_name(request):
 
@@ -175,6 +123,53 @@ def emergency_login(request):
     else:
         return render(request, "careLink/emergency_login.html")
 
+def isSignUpedElder(request):
+    elder_id, elder_code = get_elder_from_cookie(request)
+    return (elder_id and elder_code)
+
+
+class signUpElder(CreateView):
+    model = Elder
+    fields = ()
+    template_name = 'careLink/elder_add.html'
+    success_url = '/careLink/elder/home'
+
+    # アクセスするときに呼び出される
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # セッションにelder_idとelder_codeがなければ生成して保存
+        if 'elder_id' not in self.request.session:
+            self.request.session['elder_id'] = generate_unique_integer(Elder, 'elder_id', 10000, 999999999)
+        if 'elder_code' not in self.request.session:
+            self.request.session['elder_code'] = generate_unique_integer(Elder, 'elder_code', 1000, 9999)
+
+        # セッションからelder_idとelder_codeを取得してコンテキストに追加
+        context['elder_id'] = self.request.session['elder_id']
+        context['elder_code'] = self.request.session['elder_code']
+        # print("get_context_data")        
+        
+        return context
+    
+    # データベースに保存
+    def form_valid(self, form):
+        # セッションからelder_idとelder_codeを取得してセット
+        id = self.request.session.pop('elder_id')
+        form.instance.elder_id = id
+        code = self.request.session.pop('elder_code')
+        form.instance.elder_code = code
+
+        # データベースに保存
+        form.instance.save()
+
+        # Cookie に elder_id と elder_code を保存
+        response = super().form_valid(form)
+        response.set_cookie('elder_id', form.instance.elder_id, max_age=60*60)
+        response.set_cookie('elder_code', form.instance.elder_code, max_age=60*60)
+
+        return response
+
+
 # --- 家族側sginup画面
 class signUpFamily(CreateView):
     fields = ('name', 'password')
@@ -202,16 +197,14 @@ class signUpFamily(CreateView):
 def result_view(request):
     form = DateInputForm()
     today = datetime.today()  # 今日の日付を取得
-    elder_code = request.user.elder_code # elder_codeを取得
-    schedules = Schedule.objects.filter(date=today, silver_code=elder_code)  # 今日のスケジュールを取得
+    schedules = Schedule.objects.filter(date=today)  # 今日のスケジュールを取得
     return render(request, 'careLink/result.html', {'form': form, 'schedules': schedules})
 
 # --- 行動状況の取得を行う関数
 def get_schedules(request):
     if request.method == 'GET':
         selected_date = request.GET.get('date')
-        elder_code = request.user.elder_code # elder_codeを取得
-        results = Schedule.objects.filter(date=selected_date, silver_code=elder_code) # 検索
+        results = Schedule.objects.filter(date=selected_date) # 検索
         schedule_data = [
             {
                 'title': item.title,
@@ -257,7 +250,8 @@ def add_schedule(request, date):
         if 'schedule_submit' in request.POST:
             if form.is_valid():
                 schedule = form.save(commit=False)
-                max_sequence = Schedule.objects.filter(date=date, silver_code=elder_code).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得    
+                max_sequence = Schedule.objects.filter(date=date, silver_code=elder_code).aggregate(Max('sequence'))['sequence__max'] # max(順序)を取得 
+                print(max_sequence)     
                 
                 try:
                     with transaction.atomic():
@@ -275,6 +269,7 @@ def add_schedule(request, date):
                                 schedules_to_create.append(Schedule(
                                     title=schedule.title,
                                     date=new_date,
+                                    time=schedule.time,
                                     sequence = (max_sequence or 0) + 1,
                                     recurrence=schedule.recurrence,
                                     completion=False,
@@ -321,6 +316,8 @@ def delete_image(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
+
+
 def elderHome(request):
 
     if (request.method == 'POST'):
@@ -330,15 +327,30 @@ def elderHome(request):
 
     today = datetime.today()
     
-    elder_id = request.COOKIES.get('elder_id')
     elder_code = request.COOKIES.get('elder_code')
+    elder_id = request.COOKIES.get('elder_id')
+    skip_redirect = request.session.get('skip_redirect')
+    
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
         # elder_code に基づいてスケジュールをフィルタリング
-        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('time')
+        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
+        comleted_count=0
+        for i in range(len(schedules)):
+            if schedules[i].completion:
+                comleted_count+=1
+        
+        if comleted_count!=0 and comleted_count==len(schedules) and not skip_redirect:
+            request.session['skip_redirect'] = True 
+            return redirect("careLink:all_complete_effect")
+        else:
+            request.session['skip_redirect'] = False  
+            
+
         try:
             # elder_code に基づいて Elder インスタンスを取得
             elder = Elder.objects.get(elder_code=elder_code)
+            print(f"elder:{elder}")
         except Elder.DoesNotExist:
             elder = None
     else:
@@ -346,14 +358,13 @@ def elderHome(request):
         elder = None
     print(f"Schedules: {schedules}")  # デバッグ用
     print(f"elder:{elder}") # デバッグ用
-
+    
     return render(request,
-                  'careLink/elder_home.html',
-                  {'schedules': schedules,
-                   'elder': elder,
-                   'elder_id': elder_id,
-                   'elder_code': elder_code})
-
+                'careLink/elder_home.html',
+                {'schedules': schedules,
+                'elder': elder,
+                'elder_id': elder_id,
+                'elder_code': elder_code})
 
 # --- 行動順序を変更する関数
 def save_order(request):
@@ -377,14 +388,12 @@ def delete_schedule(request):
             schedule_id = data.get('schedule_id')
             schedule = Schedule.objects.get(id=schedule_id)
             schedule.delete()  # スケジュールを削除
-            print('delete:', schedule)
+            print('delete!')
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
 
-
-# --- 達成/未達成が更新された場合
 def update_schedule(request):
     if request.method == 'POST':
         try:
@@ -397,16 +406,17 @@ def update_schedule(request):
             elder_code = request.COOKIES.get('elder_code')
 
             # 該当するスケジュールを取得して保存
-            schedule = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('time')[index]
+            schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
             schedule.completion = completion
             schedule.save()
-
+            
             # すべてのスケジュールが達成された場合はエフェクトを表示
+
             new_schedule = Schedule.objects.filter(silver_code=elder_code, date=today)
             if all(schedule.completion for schedule in new_schedule):
                 print("return effect!")
                 return redirect("/careLink/elder/effect")
-            
+
             # 更新後のデータを返す
             return JsonResponse({
                 'id': schedule.id,
@@ -418,7 +428,6 @@ def update_schedule(request):
             return JsonResponse({'error': 'Invalid data or schedule not found'}, status=400)
     return JsonResponse({'error': 'Invalid method'}, status=405)   
 
-# --- エフェクト画面
 class AllCompleteEffect(TemplateView):
     def get(self,request):
         
@@ -430,6 +439,6 @@ class AllCompleteEffect(TemplateView):
             image=FamilyUser.objects.get(elder_code=elder_code).image
         else:
             image = []  # elder_code がない場合は空のリスト
-        print("aaaaaaaa", image)
+            
+        
         return render(request,"careLink/all_complete_effect.html",{"image":image,"MEDIA_URL": settings.MEDIA_URL,})
-

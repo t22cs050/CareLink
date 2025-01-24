@@ -86,21 +86,21 @@
     </style>
 </head>
 <body>
-    <h1>緊急ログイン</h1>
+    <h1>再ログイン</h1>
     {% if error %}
         <p class="error">{{ error }}</p>
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        <label for="elder_id">ID( 5桁以上10桁未満の整数 )</label>
+        <label for="elder_id">個人番号( 5桁以上10桁未満の整数 )</label>
         <input type="number" id="elder_id" name="elder_id" 
             pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
-        <label for="elder_code">Code( 4桁の整数 )</label>
+        <label for="elder_code">みまもり番号( 4桁の整数 )</label>
         <input type="number" id="elder_code" name="elder_code" 
             pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
-        <button type="submit">ログイン</button>
+        <button type="submit">入室</button>
         
     </form>
     <a href="{% url 'careLink:user_login' %}" class="back-button">戻る</a>

@@ -111,7 +111,7 @@
     </style>
 </head>
 <body>
-    <h3>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</h3>
+    <h3>個人番号: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;みまもり番号: {{ elder_code }}</h3>
     <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
@@ -137,9 +137,7 @@
             const maxVisibleTasks = 4; // 表示するタスクの数
             let startIndex = 0; // 表示開始インデックス
             let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
-            const scrollUpButton = document.getElementById('scroll-up');
-            const scrollDownButton = document.getElementById('scroll-down');
-        
+
             // サーバーに達成状態を送信
             function updateCompletion(index, newCompletion) {
                 fetch('/careLink/update_schedule/', {
@@ -162,7 +160,7 @@
                 })
                 .catch(error => console.error('エラー:', error));
             }
-        
+
             // 達成状態をクリックで切り替え
             statuses.forEach(status => {
                 status.addEventListener('click', () => {
@@ -175,11 +173,11 @@
                     updateCompletion(index, !isCompleted);
                 });
             });
-        
+
             // 達成タスクの次のタスクを強調表示する
             function findAndHighlightNextTask() {
                 let lastCompletedIndex = -1;
-        
+
                 // 達成済みタスクの最後のインデックスを探す
                 tasks.forEach((task, index) => {
                     const status = task.querySelector('.status');
@@ -187,7 +185,7 @@
                         lastCompletedIndex = index;
                     }
                 });
-        
+
                 // 達成済みタスクがない場合は最初のタスクを選択
                 if (lastCompletedIndex === -1) {
                     selectedIndex = 0;
@@ -197,7 +195,7 @@
                     selectedIndex = nextTaskIndex < tasks.length ? nextTaskIndex : 0;
                 }
             }
-        
+
             // タスクの表示を更新
             function updateTaskDisplay() {
                 tasks.forEach((task, index) => {
@@ -212,9 +210,6 @@
                         task.style.display = 'none'; // 非表示
                     }
                 });
-        
-                // ボタンの表示/非表示を更新
-                updateButtonVisibility();
             }
         
             // ボタンの表示/非表示を制御
@@ -239,22 +234,23 @@
                 return completed;
             }
 
+
             // 上に移動
-            scrollUpButton.addEventListener('click', () => {
+            document.getElementById('scroll-up').addEventListener('click', () => {
                 if (startIndex > 0) {
                     startIndex--;
                     updateTaskDisplay();
                 }
             });
-        
+
             // 下に移動
-            scrollDownButton.addEventListener('click', () => {
+            document.getElementById('scroll-down').addEventListener('click', () => {
                 if (startIndex + maxVisibleTasks < tasks.length) {
                     startIndex++;
                     updateTaskDisplay();
                 }
             });
-        
+
             // 初期状態を設定
             findAndHighlightNextTask();
             updateTaskDisplay();
@@ -262,12 +258,11 @@
                 console.log("AllCompleted");
             }
         </script>
-        
     {% else %}
         <p>予定はありません。</p>
     {% endif %}
     <div class="link-container">
-        <a href="{% url 'careLink:elder_logout' %}">ログアウト</a>
+        <a href="{% url 'careLink:elder_logout' %}">退室</a>
         <a href="{% url 'careLink:change_name' %}">名前を変更</a>
     </div>
 
