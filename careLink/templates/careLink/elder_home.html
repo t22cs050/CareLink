@@ -138,6 +138,13 @@
             let startIndex = 0; // 表示開始インデックス
             let selectedIndex = -1; // 現在強調表示されているタスクのインデックス
 
+            tasks.forEach((task, index) => {
+                const status = task.querySelector('.status');
+                if (status && status.classList.contains('completed')) {
+                    startIndex = index;
+                }
+            });
+
             // サーバーに達成状態を送信
             function updateCompletion(index, newCompletion) {
                 fetch('/careLink/update_schedule/', {
