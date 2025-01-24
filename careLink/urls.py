@@ -16,6 +16,7 @@ urlpatterns = [
     path('family/schedule/<str:date>/', add_schedule, name='add_schedule'),
     path('family/image/', views.result_view, name='image_save'),
     path('family/result/', views.result_view, name='result'),
+    path('family/help/',views.family_help, name='family_help'),
     
     path('save_order/', views.save_order, name='save_order'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
