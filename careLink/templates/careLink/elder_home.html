@@ -111,7 +111,7 @@
     </style>
 </head>
 <body>
-    <h3>ID: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;CODE: {{ elder_code }}</h3>
+    <h3>個人番号: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;みまもり番号: {{ elder_code }}</h3>
     <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
@@ -262,7 +262,7 @@
         <p>予定はありません。</p>
     {% endif %}
     <div class="link-container">
-        <a href="{% url 'careLink:elder_logout' %}">ログアウト</a>
+        <a href="{% url 'careLink:elder_logout' %}">退室</a>
         <a href="{% url 'careLink:change_name' %}">名前を変更</a>
     </div>
 
