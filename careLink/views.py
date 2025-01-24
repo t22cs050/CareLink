@@ -269,6 +269,7 @@ def add_schedule(request, date):
                                 schedules_to_create.append(Schedule(
                                     title=schedule.title,
                                     date=new_date,
+                                    time=schedule.time,
                                     sequence = (max_sequence or 0) + 1,
                                     recurrence=schedule.recurrence,
                                     completion=False,
@@ -401,11 +402,20 @@ def update_schedule(request):
             index = data.get('index')
             completion = data.get('completion')
 
-            # 該当するスケジュールを取得
-            schedule = Schedule.objects.all()[index]
+            today = datetime.today()
+            elder_code = request.COOKIES.get('elder_code')
 
+            # 該当するスケジュールを取得して保存
+            schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
             schedule.completion = completion
             schedule.save()
+            
+            # すべてのスケジュールが達成された場合はエフェクトを表示
+
+            new_schedule = Schedule.objects.filter(silver_code=elder_code, date=today)
+            if all(schedule.completion for schedule in new_schedule):
+                print("return effect!")
+                return redirect("/careLink/elder/effect")
 
             # 更新後のデータを返す
             return JsonResponse({
