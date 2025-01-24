@@ -64,7 +64,18 @@
                         // データが存在する場合
                         if (data.length > 0) {
                             data.forEach(function(schedule) {
-                                $('#schedule-list').append('<li class="list-group-item">' + schedule.title + ' - ' + schedule.completion + '</li>');
+                                // completionがtrueの場合、緑色のクラスを追加
+                                if (schedule.completion == "完了"){
+                                    var completionClass = 'list-group-item-success'
+                                }else{
+                                    var completionClass = ''
+                                }
+                                
+                                $('#schedule-list').append(
+                                    '<li class="list-group-item ' + completionClass + '">' + 
+                                    schedule.title + ' - ' + schedule.completion + 
+                                    '</li>'
+                                );
                             });
                         
                         // データが存在しない場合
