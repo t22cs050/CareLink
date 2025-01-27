@@ -15,6 +15,12 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            /* ここを変更 */
+            background-image: url('../../media/icons/neko.jpeg');
+            
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
         }
         h1 {
             color: #333;
@@ -111,6 +117,8 @@
     </style>
 </head>
 <body>
+    <!-- 注意書きを追加 -->
+    <p style="color: red;">個人番号とみまもり番号は再入室する際に必要になるからメモしてね&#x263A;</p>
     <h3>個人番号: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;みまもり番号: {{ elder_code }}</h3>
     <h1>{{ elder.elder_name }}さん、今日の予定</h1>
 
