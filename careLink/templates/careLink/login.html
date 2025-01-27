@@ -96,7 +96,8 @@
     </style>
 </head>
 <body>
-    <h1>ログインページ</h1>
+    <h1>ようこそ 見守りシステムへ&#x263A;</h1>
+    
     <form method="post">
         {% csrf_token %}
         <label for="username">ユーザー名:</label>
@@ -109,9 +110,9 @@
         {% endif %}
     </form>
     <div style="display: flex; flex-wrap: wrap;">
-        <a href="signup_elder" class="icon-link" style="width: 200px;"><img src="../../media/icons/jijibaba.png" style="height: 70px;">新規登録</a>
-        <a href="signup_family" class="icon-link" style="width: 200px;"><img src="../../media/icons/fufu_young.png" style="height: 70px;">家族側サインアップ</a>
+        <a href="signup_elder" class="icon-link" style="width: 200px;"><img src="../../media/icons/jijibaba.png" style="height: 70px;">見守られる側<br>新規登録</br></a>
+        <a href="signup_family" class="icon-link" style="width: 200px;"><img src="../../media/icons/fufu_young.png" style="height: 70px;">見守る側<br>サインアップ</br></a>
     </div>
-    <a href="emergency_login" class="emergency-link" style="width: 200px;"><i class="fas fa-exclamation-circle"></i>高齢者側 緊急ログイン</a>
+    <a href="emergency_login" class="emergency-link" style="width: 200px;"><i class="fas fa-exclamation-circle"></i>見守られる側 <br>再入室はこちらから</br></a>
 </body>
 </html>
