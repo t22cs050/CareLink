@@ -118,9 +118,9 @@
 </head>
 <body>
     <!-- 注意書きを追加 -->
-    <p style="color: red;">個人番号とみまもり番号は再入室する際に必要になるからメモしてね&#x263A;</p>
-    <h3>個人番号: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;みまもり番号: {{ elder_code }}</h3>
-    <h1>{{ elder.elder_name }}さん、今日の予定</h1>
+    <p style="color: red;margin-bottom: 5px;">個人番号,みまもり番号は再入室で必要です。#x263A;</p>
+    <h3 style="margin-bottom: 5px;">個人番号: {{ elder_id }}&nbsp;&nbsp;&nbsp;&nbsp;みまもり番号: {{ elder_code }}</h3>
+    <h1 style="margin-top: 5px;">{{ elder.elder_name }}さん、今日の予定</h1>
 
     {% if elder %}
         <div class="button-container">
