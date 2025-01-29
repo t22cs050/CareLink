@@ -10,13 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-# from pathlib import Path
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-
-#t22cs043のところはすべて自分の学籍番号に変更すること！！！！！！！！！！
-import os
-BASE_DIR = os.path.join('/home/t22cs050/t22cs050.pythonanywhere.com/')
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +25,7 @@ SECRET_KEY = "django-insecure-%u6*evm%q41e69rasclv1635)6oyhm7*j8=22!&*p($&4w_l8a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','pythonanywhere.com']
+ALLOWED_HOSTS = []
 
 """
 AUTH_USER_MODELではログイン認証に用いるモデル名を指定する。
@@ -70,7 +67,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(BASE_DIR ,'careLink','templates'),
+            BASE_DIR /'templates',
             ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -93,7 +90,7 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR , "db.sqlite3"),
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -132,14 +129,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/" 
-STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles',)
+STATIC_URL = "static/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-MEDIA_ROOT=os.path.join(BASE_DIR , "media")
+MEDIA_ROOT=BASE_DIR / "media"
 
 MEDIA_URL="/media/"
