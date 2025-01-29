@@ -334,7 +334,7 @@ def elderHome(request):
     print(f"Received elder_code: {elder_code}")  # デバッグ用
     if elder_code:
         # elder_code に基づいてスケジュールをフィルタリング
-        schedules = Schedule.objects.filter(silver_code=elder_code, date=today).order_by('date')
+        schedules = get_schedules(elder_code, today)
         comleted_count=0
         for i in range(len(schedules)):
             if schedules[i].completion:
@@ -394,6 +394,11 @@ def delete_schedule(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
 
+def get_schedules(elder_code, today):
+    schedules = Schedule.objects.filter(silver_code=elder_code, date=today)
+    schedules = sorted(schedules, key=lambda x: x.time)
+    return schedules
+
 def update_schedule(request):
     if request.method == 'POST':
         try:
@@ -406,7 +411,7 @@ def update_schedule(request):
             elder_code = request.COOKIES.get('elder_code')
 
             # 該当するスケジュールを取得して保存
-            schedule = Schedule.objects.filter(silver_code=elder_code, date=today)[index]
+            schedule = get_schedules(elder_code, today)[index]
             schedule.completion = completion
             schedule.save()
 
