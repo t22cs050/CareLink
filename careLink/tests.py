@@ -17,6 +17,85 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 
+# ログインできるかのテスト
+class LoginTests(TestCase):
+    # ログインページにアクセスできるかのテスト
+    def acsess_login(self):
+        # url'Login'にアクセス
+        response = self.client.get('login')
+        # ページが正しくロードされるか確認
+        self.assertEqual(response.status_code, 302)
+        self.assertTemplateUsed(response, 'careLink/login.html')
+    
+    # 高齢者ログインできるかのテスト
+    def test_elder_login(self):
+        # まず、高齢者サインアップ
+        response = self.client.get(reverse('careLink:signup_elder'))
+        # 'signup_elder'にアクセスできるかテスト
+        self.assertEqual(response.status_code, 200)
+
+        # url'signup_elder'にPOSTリクエストを送信
+        response = self.client.post(reverse('careLink:signup_elder'), {})
+        # サインアップが成功したか確認
+        self.assertEqual(response.status_code, 302)  # リダイレクトを確認
+        self.assertRedirects(response, reverse('careLink:elder_home'))
+
+        # url'Login'にアクセス
+        response = self.client.get(reverse('careLink:user_login'))
+        # url'elder/home'にリダイレクトされるかテスト
+        self.assertEqual(response.status_code, 302)  # リダイレクトを確認
+        self.assertRedirects(response, reverse('careLink:elder_home')) 
+
+    # 家族ログインできるかのテスト
+    def test_family_login(self):
+        # まず、高齢者サインアップ
+        response = self.client.get(reverse('careLink:signup_elder'))
+        response = self.client.post(reverse('careLink:signup_elder'), {})
+        elderocde = self.client.cookies['elder_code'].value
+
+        # まず、家族サインアップ
+        response = self.client.get(reverse('careLink:signup_family'))
+        # 'signup_family'にアクセスできるかテスト
+        self.assertEqual(response.status_code, 200)
+
+        # url'signup_family'にPOSTリクエストを送信
+        username = 'testuser'
+        password = 'password123456789'
+        response = self.client.post(reverse('careLink:signup_family'), {
+            'username': username,
+            'password1': password,
+            'password2': password,
+            'elder_code': elderocde
+        })
+        # サインアップが成功したか確認
+        self.assertEqual(response.status_code, 302)
+
+        # url'Login'にアクセスする前にクッキーを削除
+        self.client.cookies.clear()
+        # url'Login'にアクセス
+        response = self.client.get(reverse('careLink:user_login'))
+        # url'Login'にPOSTリクエストを送信
+        response = self.client.post(reverse('careLink:user_login'), {
+            'username': username,
+            'password': password
+        })
+        # ログインが成功したか確認
+        self.assertEqual(response.status_code, 302)
+
+    # userが存在しない場合のテスト
+    def test_invalid_login(self):
+        # url'Login'にPOSTリクエストを送信
+        response = self.client.post(reverse('careLink:user_login'), {
+            'username': 'testuser2',
+            'password': 'invalid_password123456789'
+        })
+        # ログインが失敗したか確認
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'careLink/login.html')
+        self.assertEqual(response.context['error'], 'Invalid credentials or elder code.')
+
+
+
 
 
 # 画面（url）遷移が正しくされるかののテスト

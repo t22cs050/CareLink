@@ -7,10 +7,13 @@ from .views import get_schedules
 app_name = 'careLink'
 urlpatterns = [
     path('login', views.user_login, name="user_login"),
-    path('signup_elder', signUpElder.as_view(), name='signup_elder'),
-    path('signup_family', signUpFamily.register, name='signup_family'),
-    path('elder/home', views.elderHome, name='elder_home'),
 
+    path('signup_elder', signUpElder.as_view(), name='signup_elder'),
+    path('elder/home', views.elderHome, name='elder_home'),
+    path('elder/logout/', views.elder_logout, name='elder_logout'),
+    path('elder/effect',views.AllCompleteEffect.as_view(),name='all_complete_effect'),
+
+    path('signup_family', signUpFamily.register, name='signup_family'),
     path('family/schedule/', MonthCalendar.as_view(), name='calendar'),
     path('family/<int:year>/<int:month>/', MonthCalendar.as_view(), name='calendar'),
     path('family/schedule/<str:date>/', add_schedule, name='add_schedule'),
@@ -24,8 +27,6 @@ urlpatterns = [
 
     path('get_schedules/', get_schedules, name='get_schedules'),
     path('update_schedule/', views.update_schedule, name='update_schedule'),
-    path('elder/effect',views.AllCompleteEffect.as_view(),name='all_complete_effect'),
-    path('elder/logout/', views.elder_logout, name='elder_logout'),
     path('change_elder_name/', views.change_elder_name, name='change_name'),
     path('emergency_login/',views.emergency_login, name='emergency_login'),
 
