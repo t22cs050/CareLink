@@ -93,10 +93,50 @@ class LoginTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'careLink/login.html')
         self.assertEqual(response.context['error'], 'Invalid credentials or elder code.')
+    
+    # 老人の名前を変更できるかのテスト
+    def test_change_elder_name(self):
+        # まず、高齢者サインアップ
+        response = self.client.get(reverse('careLink:signup_elder'))
+        response = self.client.post(reverse('careLink:signup_elder'), {})
+        elder_code = self.client.cookies['elder_code'].value
+        # 名前変更ページにアクセス
+        response = self.client.get(reverse('careLink:change_name'))
+        # 'careLink/change_name.html'にアクセスできるかテスト
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'careLink/change_name.html')
 
+        # エルダーコードからElderオブジェクトを取得
+        elder = Elder.objects.get(elder_code=elder_code)
+        # 名前変更ページにアクセス
+        response = self.client.get(reverse('careLink:change_name'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'careLink/change_name.html')
 
+        # url'change_name'にPOSTリクエストを送信
+        response = self.client.post(
+            reverse('careLink:change_name'),
+            {'elder_name':'変更後の名前'})
+        # リダイレクトされているかテスト
+        self.assertEqual(response.status_code, 302)
 
+    # 10文字以上にした時のテスト
+    def test_elder_name_too_long(self):
+        # まず、高齢者サインアップ
+        response = self.client.get(reverse('careLink:signup_elder'))
+        response = self.client.post(reverse('careLink:signup_elder'), {})
+        elder_code = self.client.cookies['elder_code'].value
 
+        # 名前変更ページにアクセス
+        response = self.client.get(reverse('careLink:change_name'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'careLink/change_name.html')
+
+        # 10文字以上の名前を送信
+        response = self.client.post(
+            reverse('careLink:change_name'),
+            {'elder_name': '非常に長い名前非常に長い名前非常に長い名前'}
+        )
 
 # 画面（url）遷移が正しくされるかののテスト
 class ScreenTransitionTests(TestCase):
